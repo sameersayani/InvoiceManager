@@ -1,0 +1,229 @@
+import logging
+from sqlalchemy.orm import Session
+from sqlalchemy import func, select
+import models
+import schemas
+from datetime import datetime
+import base64
+from typing import List
+from auth import get_password_hash, verify_password
+
+logger = logging.getLogger(__name__)
+
+def get_user(db: Session, user_id: int):
+    try:
+        return db.query(models.User).filter(models.User.id == user_id).first()
+    except Exception as e:
+        logger.error(f"Error in get_user: {str(e)}")
+        raise
+
+def get_user_by_email(db: Session, email: str):
+    try:
+        return db.query(models.User).filter(models.User.email == email).first()
+    except Exception as e:
+        logger.error(f"Error in get_user_by_email: {str(e)}")
+        raise
+
+def update_user_logo(db: Session, user_id: int, filename: str, content_type: str, data: bytes):
+    try:
+        user = db.query(models.User).filter(models.User.id == user_id).first()
+        if user:
+            user.logo = data
+            user.logo_filename = filename
+            user.logo_content_type = content_type
+            db.commit()
+            db.refresh(user)
+            logger.debug(f"Logo updated for user {user_id}")
+        return user
+    except Exception as e:
+        logger.error(f"Error in update_user_logo: {str(e)}")
+        raise
+
+def get_user_logo(db: Session, user_id: int):
+    try:
+        user = db.query(models.User).filter(models.User.id == user_id).first()
+        if user and user.logo:
+            return {
+                'data': user.logo,
+                'filename': user.logo_filename,
+                'content_type': user.logo_content_type
+            }
+        return None
+    except Exception as e:
+        logger.error(f"Error in get_user_logo: {str(e)}")
+        raise
+
+def delete_user_logo(db: Session, user_id: int):
+    try:
+        user = db.query(models.User).filter(models.User.id == user_id).first()
+        if user:
+            user.logo = None
+            user.logo_filename = None
+            user.logo_content_type = None
+            db.commit()
+            db.refresh(user)
+        return user
+    except Exception as e:
+        logger.error(f"Error in delete_user_logo: {str(e)}")
+        raise
+
+def create_user(db: Session, user: schemas.UserCreate):
+    try:
+        # Check if user already exists
+        db_user = get_user_by_email(db, email=user.email)
+        if db_user:
+            raise ValueError("User with this email already exists")
+        
+        hashed_password = get_password_hash(user.password)
+        db_user = models.User(
+            email=user.email,
+            hashed_password=hashed_password,
+            company_name=user.company_name,
+            address=user.address,
+            phone=user.phone,
+            website=user.website,
+            tax_id=user.tax_id
+        )
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
+        return db_user
+    except Exception as e:
+        db.rollback()
+        raise e
+
+def authenticate_user(db: Session, email: str, password: str):
+    try:
+        user = get_user_by_email(db, email)
+        if not user:
+            return False
+        if not verify_password(password, user.hashed_password):
+            return False
+        return user
+    except Exception as e:
+        print(f"Authentication error: {e}")
+        return False
+
+def get_clients(db: Session, user_id: int, skip: int = 0, limit: int = 100):
+    try:
+        return db.query(models.Client).filter(models.Client.user_id == user_id).offset(skip).limit(limit).all()
+    except Exception as e:
+        logger.error(f"Error fetching clients: {str(e)}")
+        raise
+
+def create_client(db: Session, client: schemas.ClientCreate, user_id: int):
+    try:
+        db_client = models.Client(**client.dict(), user_id=user_id)
+        db.add(db_client)
+        db.commit()
+        db.refresh(db_client)
+        return db_client
+    except Exception as e:
+        db.rollback()
+        raise e
+
+def generate_invoice_number(db: Session):
+    try:
+        last_invoice = db.query(models.Invoice).order_by(models.Invoice.id.desc()).first()
+        if last_invoice:
+            last_number = int(last_invoice.invoice_number.split('-')[-1])
+            new_number = last_number + 1
+        else:
+            new_number = 1
+        return f"INV-{datetime.now().year}-{new_number:04d}"
+    except Exception as e:
+        logger.error(f"Error generating invoice number: {str(e)}")
+        raise
+
+def create_invoice(db: Session, invoice: schemas.InvoiceCreate, user_id: int):
+    try:
+        invoice_number = generate_invoice_number(db)
+        db_invoice = models.Invoice(
+            **invoice.dict(exclude={'items'}),
+            user_id=user_id,
+            invoice_number=invoice_number,
+            status="draft"
+        )
+        db.add(db_invoice)
+        db.commit()
+        db.refresh(db_invoice)
+        
+        for item in invoice.items:
+            db_item = models.InvoiceItem(**item.dict(), invoice_id=db_invoice.id)
+            db.add(db_item)
+        
+        db.commit()
+        db.refresh(db_invoice)
+        return db_invoice
+    except Exception as e:
+        db.rollback()
+        raise e
+
+def get_invoices(db: Session, user_id: int, skip: int = 0, limit: int = 100):
+    try:
+        return db.query(models.Invoice).filter(models.Invoice.user_id == user_id).offset(skip).limit(limit).all()
+    except Exception as e:
+        logger.error(f"Error fetching invoices: {str(e)}")
+        raise
+
+def get_invoice(db: Session, invoice_id: int, user_id: int):
+    try:
+        return db.query(models.Invoice).filter(
+            models.Invoice.id == invoice_id,
+            models.Invoice.user_id == user_id
+        ).first()
+    except Exception as e:
+        logger.error(f"Error fetching invoice {invoice_id}: {str(e)}")
+        raise
+
+def update_invoice_status(db: Session, invoice_id: int, user_id: int, status: str):
+    try:
+        invoice = get_invoice(db, invoice_id, user_id)
+        if invoice:
+            invoice.status = status
+            db.commit()
+            db.refresh(invoice)
+        return invoice
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error updating invoice status: {str(e)}")
+        raise
+
+# Fixed function to calculate invoice totals
+def calculate_invoice_total(invoice: models.Invoice) -> float:
+    try:
+        subtotal = sum(item.quantity * item.unit_price for item in invoice.items)
+        discount = invoice.discount or 0
+        tax_rate = invoice.tax_rate or 0
+        tax_amount = (subtotal - discount) * (tax_rate / 100)
+        total = subtotal - discount + tax_amount
+        return round(total, 2)
+    except Exception as e:
+        logger.error(f"Error calculating invoice total: {str(e)}")
+        return 0.0
+
+# Fixed function to get invoice summaries
+def get_invoice_summaries(db: Session, user_id: int, skip: int = 0, limit: int = 100) -> List[schemas.InvoiceSummary]:
+    try:
+        invoices = db.query(models.Invoice).filter(
+            models.Invoice.user_id == user_id
+        ).offset(skip).limit(limit).all()
+        
+        summaries = []
+        for invoice in invoices:
+            total_amount = calculate_invoice_total(invoice)
+            summary = schemas.InvoiceSummary(
+                id=invoice.id,
+                invoice_number=invoice.invoice_number,
+                client_name=invoice.client.name,
+                issue_date=invoice.issue_date,
+                due_date=invoice.due_date,
+                total_amount=total_amount,
+                status=invoice.status
+            )
+            summaries.append(summary)
+        
+        return summaries
+    except Exception as e:
+        logger.error(f"Error fetching invoice summaries: {str(e)}")
+        raise
