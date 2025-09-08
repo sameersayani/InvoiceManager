@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { InvoiceCreate, Client } from '../types';
 import { Combobox } from '@headlessui/react';
@@ -12,6 +12,10 @@ interface InvoiceFormProps {
 
 type FormValues = {
   client_id: number | string;
+  client_name: string;
+  client_email: string;
+  client_address: string;
+  client_phone: string;
   issue_date: string;
   due_date: string;
   tax_rate?: number;
@@ -29,10 +33,15 @@ type FormValues = {
 export const InvoiceForm: React.FC<InvoiceFormProps> = ({ clients, onSubmit, onCancel }) => {
   const [query, setQuery] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   
-  const { register, control, handleSubmit, watch, formState: { errors } } = useForm<FormValues>({
+  const { register, control, handleSubmit, watch, setValue, formState: { errors } } = useForm<FormValues>({
     defaultValues: {
-      client_id: clients.length > 0 ? clients[0].id : "",
+      client_id: "",
+      client_name: "",
+      client_email: "",
+      client_address: "",
+      client_phone: "",
       items: [{ description: '', quantity: 1, unit_price: 0 }],
       tax_rate: 0,
       discount: 0,
@@ -67,6 +76,16 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ clients, onSubmit, onC
   const taxAmount = (subtotal - discountAmount) * (taxRateValue / 100);
   const total = subtotal - discountAmount + taxAmount;
 
+  // Auto-fill client details when an existing client is selected
+  useEffect(() => {
+    if (selectedClient) {
+      setValue('client_name', selectedClient.name);
+      setValue('client_email', selectedClient.email || '');
+      setValue('client_address', selectedClient.address || '');
+      setValue('client_phone', selectedClient.phone || '');
+    }
+  }, [selectedClient, setValue]);
+
   const handleFormSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
     
@@ -74,12 +93,12 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ clients, onSubmit, onC
       let clientId = data.client_id;
 
       // If client_id is a string (new client name), create the client first
-      if (typeof clientId === 'string') {
+      if (typeof clientId === 'string' || String(clientId) === "") {
         const newClient = await invoiceAPI.createClient({
-          name: clientId,
-          email: '',
-          address: '',
-          phone: ''
+          name: data.client_name,
+          email: data.client_email,
+          address: data.client_address,
+          phone: data.client_phone
         });
         clientId = newClient.id;
       }
@@ -109,29 +128,33 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ clients, onSubmit, onC
     }
   };
 
+  const clearClientFields = () => {
+    setSelectedClient(null);
+    setValue('client_name', '');
+    setValue('client_email', '');
+    setValue('client_address', '');
+    setValue('client_phone', '');
+  };
+
   return (
     <div className="card max-w-4xl mx-auto">
-      {/* <h2 className="text-2xl font-bold text-gray-900 mb-6">Create New Invoice</h2> */}
-      
       <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
         {/* Client Selection */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Client *</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Client</label>
           <Controller
             name="client_id"
             control={control}
-            rules={{ required: "Client is required" }}
             render={({ field }) => (
               <Combobox
-                value={typeof field.value === 'number' 
-                  ? clients.find(c => c.id === field.value) 
-                  : field.value
-                }
-                onChange={(selected: Client | string | null) => {
-                  if (typeof selected === 'object' && selected !== null) {
-                    field.onChange(selected.id); // Existing client
+                value={selectedClient}
+                onChange={(client: Client | null) => {
+                  setSelectedClient(client);
+                  if (client) {
+                    field.onChange(client.id);
                   } else {
-                    field.onChange(selected); // New client name string
+                    field.onChange("");
+                    clearClientFields();
                   }
                 }}
                 nullable
@@ -140,12 +163,8 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ clients, onSubmit, onC
                   <Combobox.Input
                     className="input-field w-full"
                     onChange={(e) => setQuery(e.target.value)}
-                    displayValue={(value: Client | string | null) => {
-                      if (typeof value === 'object' && value !== null) return value.name;
-                      if (typeof value === 'string') return value;
-                      return "";
-                    }}
-                    placeholder="Select or type client name"
+                    displayValue={(client: Client | null) => client ? client.name : ''}
+                    placeholder="Search for existing client or enter new client name below"
                   />
                   <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded bg-white shadow-lg">
                     {filteredClients.map((client) => (
@@ -161,14 +180,6 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ clients, onSubmit, onC
                         {client.name}
                       </Combobox.Option>
                     ))}
-                    {query !== "" && !clients.some(c => c.name.toLowerCase() === query.toLowerCase()) && (
-                      <Combobox.Option
-                        value={query}
-                        className="cursor-pointer px-3 py-2 text-indigo-600 bg-indigo-50"
-                      >
-                        + Create "{query}"
-                      </Combobox.Option>
-                    )}
                   </Combobox.Options>
                 </div>
               </Combobox>
@@ -176,6 +187,61 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ clients, onSubmit, onC
           />
           {errors.client_id && (
             <p className="text-red-600 text-sm mt-1">{errors.client_id.message}</p>
+          )}
+        </div>
+
+        {/* Client Details Fields */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Client Name *</label>
+            <input
+              type="text"
+              {...register('client_name', { required: 'Client name is required' })}
+              className="input-field"
+              placeholder="Client name"
+            />
+            {errors.client_name && (
+              <p className="text-red-600 text-sm mt-1">{errors.client_name.message}</p>
+            )}
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Client Email *</label>
+            <input
+              type="email"
+              {...register('client_email', { required: 'Client email is required' })}
+              className="input-field"
+              placeholder="client@example.com"
+            />
+            {errors.client_email && (
+              <p className="text-red-600 text-sm mt-1">{errors.client_email.message}</p>
+            )}
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Client Address *</label>
+          <textarea
+            {...register('client_address', { required: 'Client address is required' })}
+            className="input-field"
+            rows={2}
+            placeholder="Full address"
+          />
+          {errors.client_address && (
+            <p className="text-red-600 text-sm mt-1">{errors.client_address.message}</p>
+          )}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Client Phone *</label>
+          <input
+            type="text"
+            {...register('client_phone', { required: 'Client phone is required' })}
+            className="input-field"
+            placeholder="Phone number"
+          />
+          {errors.client_phone && (
+            <p className="text-red-600 text-sm mt-1">{errors.client_phone.message}</p>
           )}
         </div>
 
