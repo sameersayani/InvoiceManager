@@ -159,6 +159,34 @@ def create_invoice(db: Session, invoice: schemas.InvoiceCreate, user_id: int):
         db.rollback()
         raise e
 
+def update_invoice(db: Session, invoice_id: int, invoice: schemas.InvoiceUpdate, user_id: int):
+    try:
+        db_invoice = get_invoice(db, invoice_id, user_id)
+        if not db_invoice:
+            return None
+        
+        # Update only provided fields
+        update_data = invoice.dict(exclude_unset=True, exclude={'items'})
+        for key, value in update_data.items():
+            setattr(db_invoice, key, value)
+        
+        # Update items only if provided
+        if invoice.items is not None:
+            # Clear existing items
+            db.query(models.InvoiceItem).filter(models.InvoiceItem.invoice_id == invoice_id).delete()
+            
+            # Add new items
+            for item in invoice.items:
+                db_item = models.InvoiceItem(**item.dict(), invoice_id=invoice_id)
+                db.add(db_item)
+        
+        db.commit()
+        db.refresh(db_invoice)
+        return db_invoice
+    except Exception as e:
+        db.rollback()
+        raise e
+
 def get_invoices(db: Session, user_id: int, skip: int = 0, limit: int = 100):
     try:
         return db.query(models.Invoice).filter(models.Invoice.user_id == user_id).offset(skip).limit(limit).all()

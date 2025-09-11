@@ -70,6 +70,9 @@ export const invoiceAPI = {
   createInvoice: (invoice: InvoiceCreate): Promise<Invoice> =>
     api.post('/invoices/', invoice).then(response => response.data),
 
+  updateInvoice: (id: number, invoice: InvoiceCreate): Promise<Invoice> =>
+    api.put(`/invoices/${id}`, invoice).then(response => response.data),
+
   updateInvoiceStatus: (id: number, status: string): Promise<void> =>
     api.patch(`/invoices/${id}/status`, { status }),
 

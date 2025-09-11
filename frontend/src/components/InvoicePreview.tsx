@@ -29,6 +29,21 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice, onBack,
     overdue: 'bg-red-100 text-red-800',
   };
 
+  // Safe access to client properties with fallbacks
+  const client = invoice.client || {};
+  const clientName = client.name || 'N/A';
+  const clientAddress = client.address || 'N/A';
+  const clientEmail = client.email || 'N/A';
+  const clientPhone = client.phone || 'N/A';
+
+  // Safe access to company details from invoice or use defaults
+  const companyName = invoice.client.name || 'Demo Company Inc.';
+  const companyAddress = invoice.client.address || '123 Business Ave, Suite 100';
+  const companyCity = invoice.client.city || 'New York, NY 10001';
+  const companyEmail = invoice.client.email || 'contact@democompany.com';
+  const companyPhone = invoice.client.phone || '+1 (555) 123-4567';
+  const companyTaxId = invoice.client.tax_id || '';
+
   return (
     <div className="max-w-4xl mx-auto">
       <button
@@ -44,6 +59,9 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice, onBack,
             <div>
               <h1 className="text-3xl font-bold text-gray-900">INVOICE</h1>
               <p className="text-gray-600 text-lg">#{invoice.invoice_number}</p>
+              {companyTaxId && (
+                <p className="text-gray-500 text-sm mt-1">Tax ID: {companyTaxId}</p>
+              )}
             </div>
             <div className="text-right">
               {companyLogo ? (
@@ -57,7 +75,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice, onBack,
                   <span className="text-white font-bold text-xl">LOGO</span>
                 </div>
               )}
-              <p className="text-sm text-gray-600 font-medium">Demo Company Inc.</p>
+              <p className="text-sm text-gray-600 font-medium">{companyName}</p>
             </div>
           </div>
 
@@ -66,20 +84,23 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice, onBack,
             <div>
               <h3 className="font-semibold text-gray-900 mb-3 text-lg">From:</h3>
               <div className="space-y-1 text-gray-700">
-                <p className="font-medium">Demo Company Inc.</p>
-                <p>123 Business Ave, Suite 100</p>
-                <p>New York, NY 10001</p>
-                <p>contact@democompany.com</p>
-                <p>+1 (555) 123-4567</p>
+                <p className="font-medium">{companyName}</p>
+                <p>{companyAddress}</p>
+                <p>{companyCity}</p>
+                <p>{companyEmail}</p>
+                <p>{companyPhone}</p>
               </div>
             </div>
             <div>
               <h3 className="font-semibold text-gray-900 mb-3 text-lg">To:</h3>
               <div className="space-y-1 text-gray-700">
-                <p className="font-medium">{invoice.client.name}</p>
-                <p>{invoice.client.address}</p>
-                <p>{invoice.client.email}</p>
-                <p>{invoice.client.phone}</p>
+                <p className="font-medium">{clientName}</p>
+                <p>{clientAddress}</p>
+                <p>{clientEmail}</p>
+                <p>{clientPhone}</p>
+                {client.tax_id && (
+                  <p className="text-sm text-gray-500">Tax ID: {client.tax_id}</p>
+                )}
               </div>
             </div>
           </div>
@@ -87,15 +108,21 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice, onBack,
           {/* Invoice Details */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 bg-gray-50 p-4 rounded-lg">
             <div className="space-y-2">
-              <p><span className="font-semibold text-gray-900">Issue Date:</span> {format(new Date(invoice.issue_date), 'MMM dd, yyyy')}</p>
+              <p><span className="font-semibold text-gray-900">Invoice Date:</span> {format(new Date(invoice.issue_date), 'MMM dd, yyyy')}</p>
               <p><span className="font-semibold text-gray-900">Due Date:</span> {format(new Date(invoice.due_date), 'MMM dd, yyyy')}</p>
+              {invoice.invoice_number && (
+                <p><span className="font-semibold text-gray-900">PO Number:</span> {invoice.invoice_number}</p>
+              )}
             </div>
-            <div>
+            <div className="space-y-2">
               <p><span className="font-semibold text-gray-900">Status:</span> 
-                <span className={`ml-2 px-3 py-1 rounded-full text-sm font-medium ${statusColors[invoice.status as keyof typeof statusColors]}`}>
-                  {invoice.status.toUpperCase()}
+                <span className={`ml-2 px-3 py-1 rounded-full text-sm font-medium ${statusColors[invoice.status as keyof typeof statusColors] || 'bg-gray-100 text-gray-800'}`}>
+                  {invoice.status?.toUpperCase() || 'DRAFT'}
                 </span>
               </p>
+              {invoice.terms && (
+                <p><span className="font-semibold text-gray-900">Payment Terms:</span> {invoice.terms}</p>
+              )}
             </div>
           </div>
 
@@ -111,12 +138,18 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice, onBack,
                 </tr>
               </thead>
               <tbody>
-                {invoice.items.map((item, index) => (
+                {invoice.items?.map((item, index) => (
                   <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="py-4 text-gray-700">{item.description}</td>
-                    <td className="text-right py-4 text-gray-700">{item.quantity}</td>
-                    <td className="text-right py-4 text-gray-700">${item.unit_price.toFixed(2)}</td>
-                    <td className="text-right py-4 text-gray-700 font-medium">${(item.quantity * item.unit_price).toFixed(2)}</td>
+                    <td className="py-4 text-gray-700">
+                      <div>
+                        <p className="font-medium">{item.description || 'No description'}</p>
+                      </div>
+                    </td>
+                    <td className="text-right py-4 text-gray-700">{item.quantity || 0}</td>
+                    <td className="text-right py-4 text-gray-700">${(item.unit_price || 0).toFixed(2)}</td>
+                    <td className="text-right py-4 text-gray-700 font-medium">
+                      ${((item.quantity || 0) * (item.unit_price || 0)).toFixed(2)}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -130,28 +163,59 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice, onBack,
                 <span className="text-gray-600">Subtotal:</span>
                 <span className="font-medium">${subtotal.toFixed(2)}</span>
               </div>
+              
               {discount > 0 && (
                 <div className="flex justify-between text-red-600">
                   <span>Discount:</span>
                   <span>-${discount.toFixed(2)}</span>
                 </div>
               )}
+              
               {taxRate > 0 && (
                 <div className="flex justify-between">
                   <span>Tax ({taxRate}%):</span>
                   <span>${taxAmount.toFixed(2)}</span>
                 </div>
               )}
+
+              {invoice.shipping_fee > 0 && (
+                <div className="flex justify-between">
+                  <span>Shipping:</span>
+                  <span>${invoice.shipping_fee.toFixed(2)}</span>
+                </div>
+              )}
+
               <div className="flex justify-between border-t-2 border-gray-200 pt-3 font-bold text-xl text-gray-900">
                 <span>Total:</span>
                 <span>${total.toFixed(2)}</span>
               </div>
+
+              {invoice.amount_paid > 0 && (
+                <>
+                  <div className="flex justify-between text-green-600">
+                    <span>Amount Paid:</span>
+                    <span>${invoice.amount_paid.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between border-t border-gray-200 pt-2 font-bold text-lg">
+                    <span>Balance Due:</span>
+                    <span>${(total - (invoice.amount_paid || 0)).toFixed(2)}</span>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
+          {/* Payment Instructions */}
+          {invoice.payment_instructions && (
+            <div className="mt-8 pt-6 border-t border-gray-200">
+              <h3 className="font-semibold text-gray-900 mb-3">Payment Instructions</h3>
+              <p className="text-gray-700 leading-relaxed">{invoice.payment_instructions}</p>
+            </div>
+          )}
+
           {/* Notes & Terms */}
           {invoice.notes && (
-            <div className="mt-8 pt-6 border-t border-gray-200">
+            <div className="mt-6 pt-6 border-t border-gray-200">
               <h3 className="font-semibold text-gray-900 mb-3">Notes</h3>
               <p className="text-gray-700 leading-relaxed">{invoice.notes}</p>
             </div>
@@ -164,8 +228,16 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice, onBack,
             </div>
           )}
 
+          {/* Footer */}
           <div className="mt-8 pt-6 border-t border-gray-200 text-center">
-            <p className="text-gray-500 text-sm">Thank you for your business!</p>
+            <p className="text-gray-500 text-sm">
+              {invoice.footer_note || 'Thank you for your business!'}
+            </p>
+            {invoice.company_website && (
+              <p className="text-gray-500 text-sm mt-1">
+                Website: {invoice.company_website}
+              </p>
+            )}
           </div>
         </div>
 
@@ -180,9 +252,11 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice, onBack,
           <button className="btn-secondary">
             Download PDF
           </button>
-          <button className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
-            Mark as Paid
-          </button>
+          {invoice.status !== 'paid' && (
+            <button className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
+              Mark as Paid
+            </button>
+          )}
         </div>
       </div>
     </div>

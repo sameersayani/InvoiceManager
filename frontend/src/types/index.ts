@@ -50,6 +50,7 @@ export interface LogoResponse {
 }
 
 export interface Client {
+  city: string;
   id: number;
   user_id: number;
   name: string;
@@ -76,6 +77,11 @@ export interface InvoiceItem {
 }
 
 export interface Invoice {
+  shipping_fee: number;
+  amount_paid: number;
+  payment_instructions: any;
+  footer_note: string;
+  company_website: any;
   id: number;
   invoice_number: string;
   user_id: number;
@@ -100,6 +106,7 @@ export interface InvoiceCreate {
   notes?: string;
   terms?: string;
   items: Omit<InvoiceItem, 'id' | 'invoice_id'>[];
+  company_logo?: string;
 }
 
 export interface InvoiceSummary {

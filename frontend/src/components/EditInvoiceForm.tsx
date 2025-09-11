@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
-import { InvoiceCreate, Client } from '../types';
+import { Invoice, Client, InvoiceCreate } from '../types';
 import { Combobox } from '@headlessui/react';
-import { invoiceAPI } from '../services/api';
+import { invoiceAPI, logoAPI } from '../services/api';
 import { LogoUpload } from './LogoUpload';
 
-interface InvoiceFormProps {
+interface EditInvoiceFormProps {
+  invoice: Invoice;
   clients: Client[];
   onSubmit: (data: InvoiceCreate) => Promise<void>;
   onCancel: () => void;
+  onUpdateSuccess?: () => void;
 }
 
 type FormValues = {
@@ -23,32 +25,50 @@ type FormValues = {
   discount?: number;
   notes?: string;
   terms?: string;
+  po_number?: string;
+  payment_terms?: string;
+  shipping_fee?: number;
   items: Array<{
     description: string;
     quantity: number;
     unit_price: number;
     tax_rate?: number;
+    item_code?: string;
   }>;
 };
 
-export const InvoiceForm: React.FC<InvoiceFormProps> = ({ clients, onSubmit, onCancel }) => {
+export const EditInvoiceForm: React.FC<EditInvoiceFormProps> = ({
+  invoice,
+  clients,
+  onSubmit,
+  onCancel,
+  onUpdateSuccess
+}) => {
   const [query, setQuery] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
-  const [companyLogo, setCompanyLogo] = useState<string | null>(null);
+  const [companyLogo, setCompanyLogo] = useState<string>('');
   
   const { register, control, handleSubmit, watch, setValue, formState: { errors } } = useForm<FormValues>({
     defaultValues: {
-      client_id: "",
-      client_name: "",
-      client_email: "",
-      client_address: "",
-      client_phone: "",
-      items: [{ description: '', quantity: 1, unit_price: 0 }],
-      tax_rate: 0,
-      discount: 0,
-      issue_date: new Date().toISOString().split('T')[0],
-      due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      client_id: invoice.client?.id || "",
+      client_name: invoice.client?.name || "",
+      client_email: invoice.client?.email || "",
+      client_address: invoice.client?.address || "",
+      client_phone: invoice.client?.phone || "",
+      items: invoice.items?.map(item => ({
+        description: item.description,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        tax_rate: item.tax_rate,
+      })) || [{ description: '', quantity: 1, unit_price: 0 }],
+      tax_rate: invoice.tax_rate || 0,
+      discount: invoice.discount || 0,
+      issue_date: invoice.issue_date ? new Date(invoice.issue_date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      due_date: invoice.due_date ? new Date(invoice.due_date).toISOString().split('T')[0] : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      notes: invoice.notes || '',
+      terms: invoice.terms || '',
+      shipping_fee: invoice.shipping_fee || 0
     },
   });
 
@@ -66,6 +86,7 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ clients, onSubmit, onC
   const items = watch('items');
   const taxRate = watch('tax_rate') || 0;
   const discount = watch('discount') || 0;
+  const shippingFee = watch('shipping_fee') || 0;
 
   const subtotal = items.reduce((sum, item) => {
     const quantity = Number(item.quantity) || 0;
@@ -76,7 +97,7 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ clients, onSubmit, onC
   const discountAmount = Number(discount) || 0;
   const taxRateValue = Number(taxRate) || 0;
   const taxAmount = (subtotal - discountAmount) * (taxRateValue / 100);
-  const total = subtotal - discountAmount + taxAmount;
+  const total = subtotal - discountAmount + taxAmount + Number(shippingFee);
 
   // Auto-fill client details when an existing client is selected
   useEffect(() => {
@@ -87,6 +108,16 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ clients, onSubmit, onC
       setValue('client_phone', selectedClient.phone || '');
     }
   }, [selectedClient, setValue]);
+
+  // Set initial selected client
+  useEffect(() => {
+    if (invoice.client && clients.length > 0) {
+      const client = clients.find(c => c.id === invoice.client.id);
+      if (client) {
+        setSelectedClient(client);
+      }
+    }
+  }, [invoice.client, clients]);
 
   const handleFormSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
@@ -114,18 +145,20 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ clients, onSubmit, onC
         discount: data.discount || 0,
         notes: data.notes || '',
         terms: data.terms || '',
-        company_logo: companyLogo || undefined,
+        company_logo: companyLogo,
         items: data.items.map(item => ({
           description: item.description,
           quantity: Number(item.quantity),
           unit_price: Number(item.unit_price),
-          tax_rate: item.tax_rate || 0
+          tax_rate: item.tax_rate || 0,
+          item_code: item.item_code || ''
         }))
       };
 
       await onSubmit(invoiceData);
+      onUpdateSuccess?.();
     } catch (error) {
-      console.error('Error creating invoice:', error);
+      console.error('Error updating invoice:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -139,12 +172,14 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ clients, onSubmit, onC
     setValue('client_phone', '');
   };
 
-    const handleLogoUpload = (logoUrl: string) => {
+  const handleLogoUpload = (logoUrl: string) => {
     setCompanyLogo(logoUrl);
   };
 
   return (
     <div className="card max-w-4xl mx-auto">
+      <h2 className="text-2xl font-bold text-gray-900 mb-6">Edit Invoice #{invoice.invoice_number}</h2>
+      
       {/* Logo Upload Section */}
       <div className="mb-6 p-4 bg-gray-50 rounded-lg">
         <h3 className="text-lg font-semibold text-gray-800 mb-3">Company Logo</h3>
@@ -160,6 +195,7 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ clients, onSubmit, onC
           </div>
         )}
       </div>
+
       <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
         {/* Client Selection */}
         <div>
@@ -186,7 +222,7 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ clients, onSubmit, onC
                     className="input-field w-full"
                     onChange={(e) => setQuery(e.target.value)}
                     displayValue={(client: Client | null) => client ? client.name : ''}
-                    placeholder="Search for existing client or enter new client name below"
+                    placeholder="Search for existing client"
                   />
                   <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded bg-white shadow-lg">
                     {filteredClients.map((client) => (
@@ -207,9 +243,6 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ clients, onSubmit, onC
               </Combobox>
             )}
           />
-          {errors.client_id && (
-            <p className="text-red-600 text-sm mt-1">{errors.client_id.message}</p>
-          )}
         </div>
 
         {/* Client Details Fields */}
@@ -294,8 +327,31 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ clients, onSubmit, onC
           </div>
         </div>
 
-        {/* Tax and Discount */}
+        {/* Additional Invoice Details */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">PO Number</label>
+            <input
+              type="text"
+              {...register('po_number')}
+              className="input-field"
+              placeholder="Purchase order number"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Payment Terms</label>
+            <input
+              type="text"
+              {...register('payment_terms')}
+              className="input-field"
+              placeholder="e.g., Net 30"
+            />
+          </div>
+        </div>
+
+        {/* Tax, Discount, and Shipping */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Tax Rate (%)</label>
             <input
@@ -319,6 +375,18 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ clients, onSubmit, onC
               placeholder="0.00"
             />
           </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Shipping Fee ($)</label>
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              {...register('shipping_fee', { valueAsNumber: true })}
+              className="input-field"
+              placeholder="0.00"
+            />
+          </div>
         </div>
 
         {/* Items */}
@@ -337,7 +405,7 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ clients, onSubmit, onC
           <div className="space-y-3">
             {fields.map((field, index) => (
               <div key={field.id} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-start p-3 bg-gray-50 rounded-lg">
-                <div className="md:col-span-5">
+                <div className="md:col-span-4">
                   <input
                     {...register(`items.${index}.description`, { required: 'Description is required' })}
                     placeholder="Item description"
@@ -346,6 +414,11 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ clients, onSubmit, onC
                   {errors.items?.[index]?.description && (
                     <p className="text-red-600 text-sm mt-1">{errors.items[index]?.description?.message}</p>
                   )}
+                  <input
+                    {...register(`items.${index}.item_code`)}
+                    placeholder="Item code (optional)"
+                    className="input-field mt-2"
+                  />
                 </div>
                 <div className="md:col-span-2">
                   <input
@@ -381,7 +454,7 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ clients, onSubmit, onC
                     <p className="text-red-600 text-sm mt-1">{errors.items[index]?.unit_price?.message}</p>
                   )}
                 </div>
-                <div className="md:col-span-2">
+                <div className="md:col-span-3 flex gap-2">
                   <button
                     type="button"
                     onClick={() => remove(index)}
@@ -413,6 +486,12 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ clients, onSubmit, onC
               <div className="flex justify-between">
                 <span>Tax ({taxRateValue}%):</span>
                 <span>${taxAmount.toFixed(2)}</span>
+              </div>
+            )}
+            {shippingFee > 0 && (
+              <div className="flex justify-between">
+                <span>Shipping:</span>
+                <span>${shippingFee.toFixed(2)}</span>
               </div>
             )}
             <div className="flex justify-between border-t border-gray-200 pt-2 font-bold text-lg">
@@ -449,7 +528,7 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ clients, onSubmit, onC
             className="btn-primary flex-1"
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'Creating Invoice...' : 'Create Invoice'}
+            {isSubmitting ? 'Updating Invoice...' : 'Update Invoice'}
           </button>
           <button 
             type="button" 

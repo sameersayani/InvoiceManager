@@ -123,6 +123,22 @@ class Invoice(InvoiceBase):
     class Config:
         from_attributes = True
 
+class InvoiceUpdate(BaseModel):
+    client_id: Optional[int] = None
+    issue_date: Optional[datetime] = None
+    due_date: Optional[datetime] = None
+    tax_rate: Optional[float] = None
+    discount: Optional[float] = None
+    notes: Optional[str] = None
+    terms: Optional[str] = None
+    company_logo: Optional[str] = None
+    po_number: Optional[str] = None
+    payment_terms: Optional[str] = None
+    shipping_fee: Optional[float] = None
+    items: Optional[List[InvoiceItemCreate]] = None
+    
+    class Config:
+        from_attributes = True
 class InvoiceSummary(BaseModel):
     id: int
     invoice_number: str

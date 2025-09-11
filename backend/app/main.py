@@ -347,6 +347,23 @@ def create_invoice(
 ):
     return crud.create_invoice(db=db, invoice=invoice, user_id=current_user.id)
 
+@app.put("/invoices/{invoice_id}", response_model=schemas.Invoice)
+def update_invoice(
+    invoice_id: int,
+    invoice: schemas.InvoiceCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_active_user)
+):
+    db_invoice = crud.get_invoice(db, invoice_id=invoice_id, user_id=current_user.id)
+    if db_invoice is None:
+        raise HTTPException(status_code=404, detail="Invoice not found")
+    return crud.update_invoice(
+    db=db, 
+    invoice_id=invoice_id,  # You need to get this from somewhere
+    invoice=invoice, 
+    user_id=current_user.id  # You need to get the current user ID
+)
+
 @app.patch("/invoices/{invoice_id}/status")
 def update_invoice_status(
     invoice_id: int, 

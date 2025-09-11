@@ -1,9 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { InvoiceSummary, Client, Invoice } from '../types';
+import { InvoiceSummary, Client, Invoice, InvoiceCreate } from '../types';
 import { invoiceAPI, logoAPI } from '../services/api';
 import { InvoiceForm } from '../components/InvoiceForm';
 import { InvoicePreview } from '../components/InvoicePreview';
 import { LogoutButton } from '../components/LogoutButton';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { 
+  faEye, 
+  faPrint, 
+  faFilePdf, 
+  faEdit,
+  faTrashAlt,
+  faCheckCircle,
+  faPlus,
+  faTimes
+} from '@fortawesome/free-solid-svg-icons';
+import { EditInvoiceForm } from '../components/EditInvoiceForm';
 
 interface DashboardProps {
   onLogout: () => void;
@@ -19,6 +31,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [companyLogo, setCompanyLogo] = useState<string>('');
   const [createError, setCreateError] = useState<string | null>(null);
+  const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
 
   useEffect(() => {
     loadData();
@@ -88,6 +101,29 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     setShowCreateForm(false);
     setCreateError(null);
   };
+
+  const handleUpdateInvoice = async (data: any) => {
+    try {
+      if (!editingInvoice) return;
+      await invoiceAPI.updateInvoice(editingInvoice.id, data);
+      setEditingInvoice(null);
+      loadData(); // Reload the invoices list
+    }
+    catch (error: any) {
+      console.error('Error updating invoice:', error);
+      throw error;
+    }
+  };
+  
+const handleEditInvoice = async (invoiceSummary: InvoiceSummary) => {
+  try {
+    const fullInvoice = await invoiceAPI.getInvoice(invoiceSummary.id);
+    setEditingInvoice(fullInvoice);
+  } catch (error) {
+    console.error('Error loading invoice for editing:', error);
+    setError('Failed to load invoice for editing.');
+  }
+};
 
   if (loading) {
     return (
@@ -255,23 +291,69 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                             {invoice.status}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap space-x-2">
+                       <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex space-x-3">
                           <button
                             onClick={() => handleViewInvoice(invoice.id)}
-                            className="text-blue-600 hover:text-blue-900 underline text-sm"
+                            className="text-blue-600 hover:text-blue-900 transition-colors duration-200 p-2 rounded hover:bg-blue-50"
+                            title="View Invoice"
                           >
-                            View
+                            <FontAwesomeIcon icon={faEye} className="w-4 h-4" />
                           </button>
-                          <button className="text-green-600 hover:text-green-900 underline text-sm">
-                            Print
+                          <button 
+                            className="text-green-600 hover:text-green-900 transition-colors duration-200 p-2 rounded hover:bg-green-50"
+                            title="Print Invoice"
+                          >
+                            <FontAwesomeIcon icon={faPrint} className="w-4 h-4" />
                           </button>
-                        </td>
+                          <button 
+                            className="text-purple-600 hover:text-purple-900 transition-colors duration-200 p-2 rounded hover:bg-purple-50"
+                            title="Download PDF"
+                          >
+                            <FontAwesomeIcon icon={faFilePdf} className="w-4 h-4" />
+                          </button>
+                          <button 
+                             onClick={() => handleEditInvoice(invoice)}
+                            className="text-indigo-600 hover:text-indigo-900 transition-colors duration-200 p-2 rounded hover:bg-indigo-50"
+                            title="Edit Invoice"
+                          >
+                            <FontAwesomeIcon icon={faEdit} className="w-4 h-4" />
+                          </button>
+                          <button 
+                            className="text-red-600 hover:text-red-900 transition-colors duration-200 p-2 rounded hover:bg-red-50"
+                            title="Delete Invoice"
+                          >
+                            <FontAwesomeIcon icon={faTrashAlt} className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </>
             )}
+          </div>
+        )}
+        {editingInvoice && (
+          <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-4xl max-h-full overflow-y-auto">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-semibold">Edit Invoice</h2>
+                <button
+                  onClick={() => setEditingInvoice(null)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  ✕
+                </button>
+              </div>
+              <EditInvoiceForm
+                invoice={editingInvoice}
+                clients={clients}
+                onSubmit={handleUpdateInvoice}
+                onCancel={() => setEditingInvoice(null)}
+              />
+            </div>
           </div>
         )}
       </div>
