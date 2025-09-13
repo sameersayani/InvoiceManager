@@ -81,4 +81,11 @@ export const invoiceAPI = {
 
   createClient: (client: ClientCreate): Promise<Client> =>
     api.post('/clients/', client).then(response => response.data),
+
+  getClient: (id: number): Promise<Client> =>
+    api.get(`/clients/${id}`).then(response => response.data),
+
+  deleteInvoice: (id: number): Promise<void> =>
+    api.delete(`/invoices/${id}`).then(response => response.data),
+
 };

@@ -32,12 +32,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
   const [companyLogo, setCompanyLogo] = useState<string>('');
   const [createError, setCreateError] = useState<string | null>(null);
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
+  const [invoiceToDelete, setInvoiceToDelete] = useState<InvoiceSummary | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     loadData();
     loadUserData();
   }, []);
-
+  
   const loadData = async () => {
     try {
       setLoading(true);
@@ -114,7 +116,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
       throw error;
     }
   };
-  
+
 const handleEditInvoice = async (invoiceSummary: InvoiceSummary) => {
   try {
     const fullInvoice = await invoiceAPI.getInvoice(invoiceSummary.id);
@@ -124,6 +126,30 @@ const handleEditInvoice = async (invoiceSummary: InvoiceSummary) => {
     setError('Failed to load invoice for editing.');
   }
 };
+
+  const handleDeleteInvoice = async (invoice: InvoiceSummary) => {
+    setInvoiceToDelete(invoice);
+  };
+
+    const confirmDelete = async () => {
+    if (!invoiceToDelete) return;
+    
+    try {
+      setIsDeleting(true);
+      await invoiceAPI.deleteInvoice(invoiceToDelete.id);
+      setInvoices(invoices.filter(inv => inv.id !== invoiceToDelete.id));
+      setInvoiceToDelete(null);
+    } catch (error) {
+      console.error('Error deleting invoice:', error);
+      setError('Failed to delete invoice.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const cancelDelete = () => {
+    setInvoiceToDelete(null);
+  };
 
   if (loading) {
     return (
@@ -159,9 +185,12 @@ const handleEditInvoice = async (invoiceSummary: InvoiceSummary) => {
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
+        <div className="mb-8">
+            <img src="/images/banner.png" alt="Logo" />
+        </div>
         <div className="flex justify-between items-center mb-8">
            <div>
-            <h1 className="text-3xl font-bold text-gray-800">Invoice Generator</h1>
+            {/* <h1 className="text-3xl font-bold text-gray-800">Invoice Generator</h1> */}
             {currentUser && (
               <p className="text-gray-600 mt-1">
                 Welcome, { currentUser.company_name || 'User'}!
@@ -300,18 +329,18 @@ const handleEditInvoice = async (invoiceSummary: InvoiceSummary) => {
                           >
                             <FontAwesomeIcon icon={faEye} className="w-4 h-4" />
                           </button>
-                          <button 
+                          {/* <button 
                             className="text-green-600 hover:text-green-900 transition-colors duration-200 p-2 rounded hover:bg-green-50"
                             title="Print Invoice"
                           >
                             <FontAwesomeIcon icon={faPrint} className="w-4 h-4" />
-                          </button>
+                          </button> 
                           <button 
                             className="text-purple-600 hover:text-purple-900 transition-colors duration-200 p-2 rounded hover:bg-purple-50"
                             title="Download PDF"
                           >
                             <FontAwesomeIcon icon={faFilePdf} className="w-4 h-4" />
-                          </button>
+                          </button>*/}
                           <button 
                              onClick={() => handleEditInvoice(invoice)}
                             className="text-indigo-600 hover:text-indigo-900 transition-colors duration-200 p-2 rounded hover:bg-indigo-50"
@@ -319,9 +348,36 @@ const handleEditInvoice = async (invoiceSummary: InvoiceSummary) => {
                           >
                             <FontAwesomeIcon icon={faEdit} className="w-4 h-4" />
                           </button>
+                          {invoiceToDelete && (
+                            <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50">
+                              <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+                                <h2 className="text-xl font-semibold mb-4">Confirm Deletion</h2>
+                                <p className="mb-6">
+                                  Are you sure to delete ? This action cannot be undone
+                                </p>
+                                <div className="flex justify-end space-x-4">
+                                  <button
+                                    onClick={cancelDelete}
+                                    className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                                    disabled={isDeleting}
+                                  >
+                                    Cancel
+                                  </button>
+                                  <button
+                                    onClick={confirmDelete}
+                                    className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                                    disabled={isDeleting}
+                                  >
+                                    {isDeleting ? 'Deleting...' : 'Delete'}
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          )}
                           <button 
                             className="text-red-600 hover:text-red-900 transition-colors duration-200 p-2 rounded hover:bg-red-50"
                             title="Delete Invoice"
+                            onClick={() => handleDeleteInvoice(invoice)}
                           >
                             <FontAwesomeIcon icon={faTrashAlt} className="w-4 h-4" />
                           </button>
@@ -330,6 +386,13 @@ const handleEditInvoice = async (invoiceSummary: InvoiceSummary) => {
                       </tr>
                     ))}
                   </tbody>
+                  <tfoot className="bg-gray-50">
+                    <tr>
+                      <td colSpan={7} className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          &copy; {new Date().getFullYear()} INVYGO developed by <img src="/images/yesitech-powered.png" alt="yesitech" /> All rights reserved.
+                      </td>
+                    </tr>
+                  </tfoot>
                 </table>
               </>
             )}

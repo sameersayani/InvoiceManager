@@ -255,3 +255,16 @@ def get_invoice_summaries(db: Session, user_id: int, skip: int = 0, limit: int =
     except Exception as e:
         logger.error(f"Error fetching invoice summaries: {str(e)}")
         raise
+
+def delete_invoice(db: Session, invoice_id: int, user_id: int):
+    try:
+        invoice = get_invoice(db, invoice_id, user_id)
+        if invoice:
+            db.delete(invoice)
+            db.commit()
+            return True
+        return False
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error deleting invoice: {str(e)}")
+        raise

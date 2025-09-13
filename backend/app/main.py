@@ -376,6 +376,18 @@ def update_invoice_status(
         raise HTTPException(status_code=404, detail="Invoice not found")
     return {"message": "Status updated successfully"}
 
+@app.delete("/invoices/{invoice_id}")
+def delete_invoice(
+    invoice_id: int, 
+    db: Session = Depends(get_db), 
+    current_user: models.User = Depends(get_current_active_user)
+):
+    db_invoice = crud.get_invoice(db, invoice_id=invoice_id, user_id=current_user.id)
+    if db_invoice is None:
+        raise HTTPException(status_code=404, detail="Invoice not found")
+    crud.delete_invoice(db, invoice_id=invoice_id, user_id=current_user.id)
+    return {"message": "Invoice deleted successfully"}  
+
 
 if __name__ == "__main__":
     import uvicorn
