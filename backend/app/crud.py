@@ -111,6 +111,13 @@ def get_clients(db: Session, user_id: int, skip: int = 0, limit: int = 100):
         logger.error(f"Error fetching clients: {str(e)}")
         raise
 
+def get_user(db: Session, user_id: int):
+    try:
+        return db.query(models.User).filter(models.User.id == user_id).first()
+    except Exception as e:
+        logger.error(f"Error in get_user: {str(e)}")
+        raise
+
 def create_client(db: Session, client: schemas.ClientCreate, user_id: int):
     try:
         db_client = models.Client(**client.dict(), user_id=user_id)

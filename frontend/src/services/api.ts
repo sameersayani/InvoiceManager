@@ -51,13 +51,14 @@ export const logoAPI = {
   },
 
   getLogo: (): Promise<any> =>
-    api.get('/users/logo').then(response => response.data),
+    api.get('/users/logo').then(response => response.data.logo),
 
   deleteLogo: (): Promise<void> =>
     api.delete('/users/logo').then(response => response.data),
 
   getCurrentUser: (): Promise<User> =>
     api.get('/users/me').then(response => response.data),
+  
 };
 
 export const invoiceAPI = {

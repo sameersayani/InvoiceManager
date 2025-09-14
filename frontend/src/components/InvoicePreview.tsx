@@ -42,8 +42,8 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice, onBack,
   const companyCity = invoice.client.city || 'New York, NY 10001';
   const companyEmail = invoice.client.email || 'contact@democompany.com';
   const companyPhone = invoice.client.phone || '+1 (555) 123-4567';
-  const companyTaxId = invoice.client.tax_id || '';
-
+  const companyTaxId = invoice.client.tax_id || ''; 
+ 
   return (
     <div className="max-w-4xl mx-auto">
       <button

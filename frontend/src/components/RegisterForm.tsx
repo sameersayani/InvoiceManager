@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { UserCreate } from '../types';
 import { authAPI } from '../services/auth';
+import { CAPTCHA } from './Common/Captcha';
 
 interface RegisterFormProps {
   onRegister: () => void;
@@ -25,11 +26,20 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [isCaptchaVerified, setIsCaptchaVerified] = useState(false);
+  const [captchaReset, setCaptchaReset] = useState(0);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
+
+    // Validate CAPTCHA before submitting
+    if (!isCaptchaVerified) {
+      setError('Please complete the CAPTCHA verification');
+      setIsLoading(false);
+      return;
+    }
 
     try {
       await authAPI.register(formData);
@@ -42,6 +52,10 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
       
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Registration failed');
+     // Reset CAPTCHA on error - but only if it's not a validation error
+      if (!err.response?.data?.detail?.includes('already exists')) {
+        setCaptchaReset(prev => prev + 1);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -58,12 +72,21 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
     }
   };
 
+const handleCaptchaVerify = React.useCallback((verified: boolean) => {
+  setIsCaptchaVerified(verified);
+}, []);
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Create your account for Invygo
-        </h2>
+        <div className="flex justify-left">
+          {/* Replace with your actual logo path */}
+          <img 
+            src="/images/banner.png" 
+            alt="INVYGO Logo" 
+            className="h-auto w-auto shadow-lg sm:rounded-xl" 
+          />
+        </div>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
@@ -114,7 +137,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
 
             <div>
               <label htmlFor="company_name" className="block text-sm font-medium text-gray-700">
-                Company / Client Name
+                Company / Business Name
               </label>
               <input
                 id="company_name"
@@ -136,13 +159,14 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
                   id="phone"
                   name="phone"
                   type="tel"
+                  required
                   value={formData.phone}
                   onChange={handleChange}
                   className="input-field"
                 />
               </div>
 
-              <div>
+              {/* <div>
                 <label htmlFor="tax_id" className="block text-sm font-medium text-gray-700">
                   Tax ID
                 </label>
@@ -154,7 +178,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
                   onChange={handleChange}
                   className="input-field"
                 />
-              </div>
+              </div> */}
             </div>
 
             <div>
@@ -179,12 +203,17 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
                 id="address"
                 name="address"
                 type="text"
+                required
                 value={formData.address}
                 onChange={handleChange}
                 className="input-field"
               />
             </div>
-
+             <CAPTCHA
+              key={captchaReset} 
+              onCaptchaVerify={handleCaptchaVerify} 
+              resetTrigger={captchaReset}
+            />
             <div>
               <button
                 type="submit"

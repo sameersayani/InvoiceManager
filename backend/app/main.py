@@ -51,19 +51,19 @@ def health_check():
 @app.post("/register", response_model=schemas.User)
 def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     try:
-        logger.info(f"Attempting to register user: {user.email}")
+        logging.info(f"Attempting to register user: {user.email}")
         db_user = crud.create_user(db, user)
-        logger.info(f"User registered successfully: {user.email}")
+        logging.info(f"User registered successfully: {user.email}")
         return db_user
     except ValueError as e:
-        logger.warning(f"Registration failed - user exists: {user.email}")
+        logging.warning(f"Registration failed - user exists: {user.email}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
     except Exception as e:
-        logger.error(f"Registration error: {str(e)}")
-        logger.error(traceback.format_exc())
+        logging.error(f"Registration error: {str(e)}")
+        logging.error(traceback.format_exc())
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error during registration"
@@ -72,13 +72,13 @@ def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 @app.post("/login")
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     try:
-        logger.info(f"Login attempt for: {form_data.username}")
+        logging.info(f"Login attempt for: {form_data.username}")
         
         # FIX: Use crud.authenticate_user instead of just authenticate_user
         user = crud.authenticate_user(db, form_data.username, form_data.password)
         
         if not user:
-            logger.warning(f"Login failed for: {form_data.username}")
+            logging.warning(f"Login failed for: {form_data.username}")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Incorrect email or password",
@@ -90,7 +90,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
             data={"sub": user.email}, expires_delta=access_token_expires
         )
         
-        logger.info(f"Login successful for: {form_data.username}")
+        logging.info(f"Login successful for: {form_data.username}")
         return {
             "access_token": access_token,
             "token_type": "bearer",
@@ -104,31 +104,14 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Login error: {str(e)}")
-        logger.error(traceback.format_exc())
+        logging.error(f"Login error: {str(e)}")
+        logging.error(traceback.format_exc())
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error during login"
         )
     
-# Fake auth for demo - in production use proper authentication
-def get_current_user(db: Session = Depends(get_db)):
-    # For demo purposes, we'll use user 1
-    user = crud.get_user(db, 1)
-    if not user:
-        user = crud.create_user(db, schemas.UserCreate(
-            email="demo@example.com",
-            password="demo",
-            company_name="Demo Company",
-            address="123 Demo St, Demo City",
-            phone="+1234567890",
-            website="demo.com",
-            tax_id="123-456-789"
-        ))
-    return user
 
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
 
 @app.post("/users/logo", response_model=schemas.LogoResponse)
 async def upload_logo(
@@ -137,36 +120,36 @@ async def upload_logo(
     current_user: models.User = Depends(get_current_user)
 ):
     try:
-        logger.debug(f"Starting logo upload for user {current_user.id}")
-        logger.debug(f"File details: {file.filename}, {file.content_type}, {file.size if hasattr(file, 'size') else 'unknown size'}")
+        logging.debug(f"Starting logo upload for user {current_user.id}")
+        logging.debug(f"File details: {file.filename}, {file.content_type}, {file.size if hasattr(file, 'size') else 'unknown size'}")
         
         # Validate file type
         allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/svg+xml']
         if file.content_type not in allowed_types:
             error_msg = f"Invalid file type: {file.content_type}. Allowed: {allowed_types}"
-            logger.warning(error_msg)
+            logging.warning(error_msg)
             raise HTTPException(status_code=400, detail=error_msg)
         
         # Read file contents
         contents = await file.read()
-        logger.debug(f"File size: {len(contents)} bytes")
+        logging.debug(f"File size: {len(contents)} bytes")
         
         # Validate file size (max 5MB)
         if len(contents) > 5 * 1024 * 1024:
             error_msg = f"File too large: {len(contents)} bytes. Maximum size is 5MB."
-            logger.warning(error_msg)
+            logging.warning(error_msg)
             raise HTTPException(status_code=400, detail=error_msg)
         
         # Process image (resize if needed)
         if file.content_type.startswith('image/') and file.content_type != 'image/svg+xml':
             try:
-                logger.debug("Attempting image processing")
+                logging.debug("Attempting image processing")
                 image = Image.open(io.BytesIO(contents))
-                logger.debug(f"Original image size: {image.size}")
+                logging.debug(f"Original image size: {image.size}")
                 
                 # Resize to maximum 500x500 while maintaining aspect ratio
                 image.thumbnail((500, 500))
-                logger.debug(f"Resized image size: {image.size}")
+                logging.debug(f"Resized image size: {image.size}")
                 
                 # Convert to bytes
                 img_byte_arr = io.BytesIO()
@@ -179,16 +162,16 @@ async def upload_logo(
                     img_byte_arr = io.BytesIO(contents)
                 
                 contents = img_byte_arr.getvalue()
-                logger.debug(f"Processed file size: {len(contents)} bytes")
+                logging.debug(f"Processed file size: {len(contents)} bytes")
                 
             except Exception as image_error:
-                logger.warning(f"Image processing failed, using original file: {str(image_error)}")
+                logging.warning(f"Image processing failed, using original file: {str(image_error)}")
                 # If image processing fails, use original file
                 contents = await file.read()  # Re-read the file
                 pass
         
         # Update user logo
-        logger.debug("Updating user logo in database")
+        logging.debug("Updating user logo in database")
         user = crud.update_user_logo(
             db, 
             current_user.id, 
@@ -199,10 +182,10 @@ async def upload_logo(
         
         if not user:
             error_msg = "User not found after logo update"
-            logger.error(error_msg)
+            logging.error(error_msg)
             raise HTTPException(status_code=404, detail=error_msg)
         
-        logger.info(f"Logo uploaded successfully for user {current_user.id}: {file.filename}")
+        logging.info(f"Logo uploaded successfully for user {current_user.id}: {file.filename}")
         
         return {
             "message": "Logo uploaded successfully",
@@ -216,8 +199,8 @@ async def upload_logo(
     except Exception as e:
         # Log the full error with traceback
         error_details = traceback.format_exc()
-        logger.error(f"Error uploading logo: {str(e)}")
-        logger.error(f"Full traceback: {error_details}")
+        logging.error(f"Error uploading logo: {str(e)}")
+        logging.error(f"Full traceback: {error_details}")
         
         # Return detailed error message
         raise HTTPException(

@@ -31,15 +31,6 @@ function App() {
     setShowRegister(false); // Switch back to login form
   };
 
-   if (!isAuthenticated) {
-    return (
-      <LoginForm 
-        onLogin={handleLogin} 
-        onSwitchToRegister={handleRegistrationSuccess} 
-      />
-    );
-  }
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -47,20 +38,21 @@ function App() {
       </div>
     );
   }
-
-  if (showRegistrationSuccess) {
-    return (
-      <LoginForm 
-        onLogin={handleLogin} 
-        onSwitchToRegister={() => {
-          setShowRegistrationSuccess(false);
-          setShowRegister(true);
-        }}
-      />
-    );
-  }
   
-   if (!isAuthenticated) {
+if (!isAuthenticated) {
+    if (showRegistrationSuccess) {
+      return (
+        <LoginForm 
+          onLogin={handleLogin} 
+          onSwitchToRegister={() => {
+            setShowRegistrationSuccess(false);
+            setShowRegister(true);
+          }}
+          registrationSuccess={true}
+        />
+      );
+    }
+    
     return showRegister ? (
       <RegisterForm
         onRegister={handleLogin}

@@ -5,9 +5,14 @@ import { authAPI, tokenService } from '../services/auth';
 interface LoginFormProps {
   onLogin: () => void;
   onSwitchToRegister: () => void;
+  registrationSuccess?: boolean;
 }
 
-export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, onSwitchToRegister }) => {
+export const LoginForm: React.FC<LoginFormProps> = ({ 
+  onLogin, 
+  onSwitchToRegister,
+  registrationSuccess = false // Add this here
+}) => {
   const [formData, setFormData] = useState<UserLogin>({
     email: '',
     password: ''
@@ -53,13 +58,17 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, onSwitchToRegiste
             className="h-auto w-auto shadow-lg sm:rounded-xl" 
           />
         </div>
-        {/* <h2 className="mt-4 text-center text-3xl font-extrabold text-gray-900">
-          Sign in
-        </h2> */}
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow-lg sm:rounded-xl sm:px-10 border border-gray-100">
+          {/* Add registration success message */}
+          {registrationSuccess && (
+            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-4">
+              Registration successful! Please log in with your credentials.
+            </div>
+          )}
+          
           <form className="space-y-6" onSubmit={handleSubmit}>
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">

@@ -11,6 +11,7 @@ interface EditInvoiceFormProps {
   onSubmit: (data: InvoiceCreate) => Promise<void>;
   onCancel: () => void;
   onUpdateSuccess?: () => void;
+  companyLogo?: string;
 }
 
 type FormValues = {
@@ -42,12 +43,13 @@ export const EditInvoiceForm: React.FC<EditInvoiceFormProps> = ({
   clients,
   onSubmit,
   onCancel,
-  onUpdateSuccess
+  onUpdateSuccess,
+  companyLogo: initialLogo = ''
 }) => {
   const [query, setQuery] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
-  const [companyLogo, setCompanyLogo] = useState<string>('');
+  const [companyLogo, setCompanyLogo] =  useState<string>(initialLogo);
   
   const { register, control, handleSubmit, watch, setValue, formState: { errors } } = useForm<FormValues>({
     defaultValues: {
@@ -178,8 +180,7 @@ export const EditInvoiceForm: React.FC<EditInvoiceFormProps> = ({
 
   return (
     <div className="card max-w-4xl mx-auto">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Edit Invoice #{invoice.invoice_number}</h2>
-      
+      <h2 className="text-2xl font-bold text-gray-900 mb-6">#{invoice.invoice_number}</h2>
       {/* Logo Upload Section */}
       <div className="mb-6 p-4 bg-gray-50 rounded-lg">
         <h3 className="text-lg font-semibold text-gray-800 mb-3">Company Logo</h3>
@@ -190,7 +191,7 @@ export const EditInvoiceForm: React.FC<EditInvoiceFormProps> = ({
             <img 
               src={companyLogo} 
               alt="Company Logo" 
-              className="w-12 h-12 rounded object-cover border"
+              className="w-22 h-20 rounded object-cover border"
             />
           </div>
         )}
@@ -327,7 +328,7 @@ export const EditInvoiceForm: React.FC<EditInvoiceFormProps> = ({
           </div>
         </div>
 
-        {/* Additional Invoice Details */}
+        {/* Additional Invoice Details
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">PO Number</label>
@@ -348,7 +349,7 @@ export const EditInvoiceForm: React.FC<EditInvoiceFormProps> = ({
               placeholder="e.g., Net 30"
             />
           </div>
-        </div>
+        </div> */}
 
         {/* Tax, Discount, and Shipping */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -414,11 +415,11 @@ export const EditInvoiceForm: React.FC<EditInvoiceFormProps> = ({
                   {errors.items?.[index]?.description && (
                     <p className="text-red-600 text-sm mt-1">{errors.items[index]?.description?.message}</p>
                   )}
-                  <input
+                  {/* <input
                     {...register(`items.${index}.item_code`)}
                     placeholder="Item code (optional)"
                     className="input-field mt-2"
-                  />
+                  /> */}
                 </div>
                 <div className="md:col-span-2">
                   <input

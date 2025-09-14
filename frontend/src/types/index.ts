@@ -58,6 +58,7 @@ export interface Client {
   phone?: string;
   address?: string;
   tax_id?: string;
+  logo?: string;
 }
 
 export interface ClientCreate {

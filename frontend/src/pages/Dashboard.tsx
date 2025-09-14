@@ -92,6 +92,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
   const handleViewInvoice = async (id: number) => {
     try {
       const invoice = await invoiceAPI.getInvoice(id);
+      const user_logo = await logoAPI.getLogo() || '';
+      if (user_logo) {
+        setCompanyLogo(user_logo);
+      }
       setSelectedInvoice(invoice);
     } catch (error) {
       console.error('Error loading invoice:', error);
@@ -120,7 +124,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
 const handleEditInvoice = async (invoiceSummary: InvoiceSummary) => {
   try {
     const fullInvoice = await invoiceAPI.getInvoice(invoiceSummary.id);
+     const user_logo = await logoAPI.getLogo() || '';
+      if (user_logo) {
+        setCompanyLogo(user_logo);
+      }
     setEditingInvoice(fullInvoice);
+    
   } catch (error) {
     console.error('Error loading invoice for editing:', error);
     setError('Failed to load invoice for editing.');
@@ -389,7 +398,7 @@ const handleEditInvoice = async (invoiceSummary: InvoiceSummary) => {
                   <tfoot className="bg-gray-50">
                     <tr>
                       <td colSpan={7} className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          &copy; {new Date().getFullYear()} INVYGO developed by <img src="/images/yesitech-powered.png" alt="yesitech" /> All rights reserved.
+                          &copy; {new Date().getFullYear()} INVYGO developed & maintained by <span style={{color:'blue'}}>Yesitech solutions Pvt Ltd</span> All rights reserved.
                       </td>
                     </tr>
                   </tfoot>
@@ -415,6 +424,7 @@ const handleEditInvoice = async (invoiceSummary: InvoiceSummary) => {
                 clients={clients}
                 onSubmit={handleUpdateInvoice}
                 onCancel={() => setEditingInvoice(null)}
+                companyLogo={companyLogo}
               />
             </div>
           </div>
