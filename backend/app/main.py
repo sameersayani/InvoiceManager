@@ -371,6 +371,61 @@ def delete_invoice(
     crud.delete_invoice(db, invoice_id=invoice_id, user_id=current_user.id)
     return {"message": "Invoice deleted successfully"}  
 
+@app.get("/invoices/{invoice_id}/pdf")
+def generate_invoice_pdf(
+    invoice_id: int, 
+    db: Session = Depends(get_db), 
+    current_user: models.User = Depends(get_current_active_user)
+):
+    try:
+        pdf_bytes = crud.generate_invoice_pdf(db, invoice_id, current_user.id)
+        
+        if not pdf_bytes:
+            raise HTTPException(status_code=404, detail="Invoice not found or PDF generation failed")
+        
+        # Return PDF as direct response with proper headers
+        from fastapi.responses import Response
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f"attachment; filename=invoice_{invoice_id}.pdf",
+                "Content-Length": str(len(pdf_bytes))
+            }
+        )
+        
+    except Exception as e:
+        logging.error(f"Error generating PDF: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error generating PDF: {str(e)}")
+
+@app.patch("/invoices/{invoice_id}/mark_paid")
+def mark_invoice_as_paid(
+    invoice_id: int, 
+    db: Session = Depends(get_db), 
+    current_user: models.User = Depends(get_current_active_user)
+):
+    try:
+        db_invoice = crud.get_invoice(db, invoice_id, current_user.id)
+        if db_invoice is None:
+            raise HTTPException(status_code=404, detail="Invoice not found")
+        
+        if db_invoice.status == "paid":
+            raise HTTPException(status_code=400, detail="Invoice is already marked as paid")
+        
+        # Use the correct function to update status
+        updated_invoice = crud.update_invoice_status(db, invoice_id, current_user.id, "paid")
+        
+        if not updated_invoice:
+            raise HTTPException(status_code=500, detail="Failed to update invoice status")
+        
+        return {"message": "Invoice marked as paid successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        # logger.error(f"Error marking invoice as paid: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error marking invoice as paid: {str(e)}")
+    
 
 if __name__ == "__main__":
     import uvicorn

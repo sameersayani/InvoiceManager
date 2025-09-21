@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { Invoice } from '../types';
 import { format } from 'date-fns';
@@ -7,14 +7,60 @@ interface InvoicePreviewProps {
   invoice: Invoice;
   onBack: () => void;
   companyLogo?: string;
+  onMarkAsPaid: (invoiceId: number) => Promise<void>;
+  onDownloadPDF: (invoiceId: number) => Promise<Blob>;
 }
 
-export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice, onBack, companyLogo }) => {
+export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ 
+  invoice, 
+  onBack, 
+  companyLogo,
+  onMarkAsPaid,
+  onDownloadPDF
+}) => {
   const componentRef = React.useRef<HTMLDivElement>(null);
+  const [isMarkingAsPaid, setIsMarkingAsPaid] = useState(false);
+  const [isDownloadingPDF, setIsDownloadingPDF] = useState(false);
 
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
   });
+
+  const handleMarkAsPaid = async () => {
+      setIsMarkingAsPaid(true);
+      try {
+        await onMarkAsPaid(invoice.id);
+        // Optionally show a success message or refresh data
+      } catch (error) {
+        console.error('Failed to mark invoice as paid:', error);
+        // alert('Failed to mark invoice as paid. Please try again.');
+      } finally {
+        setIsMarkingAsPaid(false);
+    }
+  };
+
+  const handleDownloadPDF = async () => {
+    setIsDownloadingPDF(true);
+    try {
+      const pdfBlob = await onDownloadPDF(invoice.id);
+      
+      // Create a download link
+      const url = window.URL.createObjectURL(pdfBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `invoice-${invoice.invoice_number}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      
+      // Clean up
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('Failed to download PDF:', error);
+    } finally {
+      setIsDownloadingPDF(false);
+    }
+  };
 
   const subtotal = invoice.items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0);
   const discount = invoice.discount || 0;
@@ -43,7 +89,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice, onBack,
   const companyEmail = invoice.client.email || 'contact@democompany.com';
   const companyPhone = invoice.client.phone || '+1 (555) 123-4567';
   const companyTaxId = invoice.client.tax_id || ''; 
- 
+
   return (
     <div className="max-w-4xl mx-auto">
       <button
@@ -249,12 +295,20 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice, onBack,
           >
             Print Invoice
           </button>
-          <button className="btn-secondary">
-            Download PDF
+          <button 
+            onClick={handleDownloadPDF}
+            disabled={isDownloadingPDF}
+            className="btn-secondary"
+          >
+            {isDownloadingPDF ? 'Downloading...' : 'Download PDF'}
           </button>
           {invoice.status !== 'paid' && (
-            <button className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
-              Mark as Paid
+            <button 
+              onClick={handleMarkAsPaid}
+              disabled={isMarkingAsPaid}
+              className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 disabled:bg-green-400"
+            >
+              {isMarkingAsPaid ? 'Processing...' : 'Mark as Paid'}
             </button>
           )}
         </div>

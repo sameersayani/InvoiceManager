@@ -30,6 +30,7 @@ class LogoResponse(BaseModel):
     message: str
     filename: str
     content_type: str
+    logo: str  # Base64 encoded logo
 
 class UserCreate(UserBase):
     password: str = Field(..., min_length=6)

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { UserCreate } from '../types';
 import { authAPI } from '../services/auth';
 import { CAPTCHA } from './Common/Captcha';
+import { LogoUpload } from './LogoUpload';
 
 interface RegisterFormProps {
   onRegister: () => void;
@@ -28,6 +29,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
   const [successMessage, setSuccessMessage] = useState('');
   const [isCaptchaVerified, setIsCaptchaVerified] = useState(false);
   const [captchaReset, setCaptchaReset] = useState(0);
+  // const [companyLogo, setCompanyLogo] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,6 +78,10 @@ const handleCaptchaVerify = React.useCallback((verified: boolean) => {
   setIsCaptchaVerified(verified);
 }, []);
 
+// const handleLogoUpload = (logoUrl: string) => {
+// setCompanyLogo(logoUrl);
+// };
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -103,7 +109,19 @@ const handleCaptchaVerify = React.useCallback((verified: boolean) => {
                 {successMessage}
               </div>
             )}
-
+            {/* <div>
+               <h3 className="text-lg font-semibold text-gray-800 mb-3">Company Logo</h3>
+              <LogoUpload onLogoUpload={handleLogoUpload} /> 
+              {companyLogo && (
+                <div className="mt-3 flex items-center">
+                  <img 
+                    src={companyLogo} 
+                    alt="Company Logo" 
+                    className="h-20 w-20 object-contain border rounded-lg"
+                  />
+                </div>
+              )}
+            </div> */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                 Email address

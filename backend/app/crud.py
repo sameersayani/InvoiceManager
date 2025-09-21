@@ -111,13 +111,6 @@ def get_clients(db: Session, user_id: int, skip: int = 0, limit: int = 100):
         logger.error(f"Error fetching clients: {str(e)}")
         raise
 
-def get_user(db: Session, user_id: int):
-    try:
-        return db.query(models.User).filter(models.User.id == user_id).first()
-    except Exception as e:
-        logger.error(f"Error in get_user: {str(e)}")
-        raise
-
 def create_client(db: Session, client: schemas.ClientCreate, user_id: int):
     try:
         db_client = models.Client(**client.dict(), user_id=user_id)
@@ -274,4 +267,169 @@ def delete_invoice(db: Session, invoice_id: int, user_id: int):
     except Exception as e:
         db.rollback()
         logger.error(f"Error deleting invoice: {str(e)}")
+        raise
+
+def generate_invoice_pdf(db: Session, invoice_id: int, user_id: int) -> bytes:
+    try:
+        from reportlab.lib.pagesizes import A4
+        from reportlab.lib import colors
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+        from reportlab.lib.enums import TA_LEFT, TA_RIGHT, TA_CENTER
+        from reportlab.pdfbase import pdfmetrics
+        from reportlab.pdfbase.ttfonts import TTFont
+        from io import BytesIO
+        import base64
+
+        invoice = get_invoice(db, invoice_id, user_id)
+        if not invoice:
+            return None
+
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4)
+        elements = []
+
+        styles = getSampleStyleSheet()
+        
+        # Create custom styles
+        title_style = ParagraphStyle(
+            'Title',
+            parent=styles['Heading1'],
+            fontSize=18,
+            spaceAfter=12,
+            alignment=TA_CENTER
+        )
+        
+        normal_style = styles['Normal']
+        bold_style = ParagraphStyle(
+            'Bold',
+            parent=styles['Normal'],
+            fontName='Helvetica-Bold'
+        )
+        
+        right_align_style = ParagraphStyle(
+            'RightAlign',
+            parent=styles['Normal'],
+            alignment=TA_RIGHT
+        )
+        
+        bold_right_align_style = ParagraphStyle(
+            'BoldRightAlign',
+            parent=styles['Normal'],
+            fontName='Helvetica-Bold',
+            alignment=TA_RIGHT
+        )
+
+        # Title
+        elements.append(Paragraph(f"INVOICE #{invoice.invoice_number}", title_style))
+        elements.append(Spacer(1, 20))
+
+        # Company and Client Info
+        company_info = f"""
+        <b>From:</b><br/>
+        {invoice.client.name if invoice.client else 'N/A'}<br/>
+        {invoice.client.address if invoice.client else 'N/A'}<br/>
+        {invoice.client.email if invoice.client else 'N/A'}<br/>
+        {invoice.client.phone if invoice.client else 'N/A'}
+        """
+        
+        client_info = f"""
+        <b>To:</b><br/>
+        {invoice.client.name if invoice.client else 'N/A'}<br/>
+        {invoice.client.address if invoice.client else 'N/A'}<br/>
+        {invoice.client.email if invoice.client else 'N/A'}<br/>
+        {invoice.client.phone if invoice.client else 'N/A'}
+        """
+
+        elements.append(Paragraph(company_info, normal_style))
+        elements.append(Spacer(1, 12))
+        elements.append(Paragraph(client_info, normal_style))
+        elements.append(Spacer(1, 20))
+
+        # Invoice Details
+        details_data = [
+            ['Invoice Date:', invoice.issue_date.strftime('%Y-%m-%d')],
+            ['Due Date:', invoice.due_date.strftime('%Y-%m-%d')],
+            ['Status:', invoice.status.upper()],
+        ]
+        
+        details_table = Table(details_data, colWidths=[100, 200])
+        details_table.setStyle(TableStyle([
+            ('FONT', (0, 0), (-1, -1), 'Helvetica'),
+            ('FONT', (0, 0), (0, -1), 'Helvetica-Bold'),
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#F3F4F6')),
+        ]))
+        
+        elements.append(details_table)
+        elements.append(Spacer(1, 20))
+
+        # Items Table
+        items_data = [['Description', 'Qty', 'Unit Price', 'Amount']]
+        
+        subtotal = 0
+        for item in invoice.items:
+            amount = item.quantity * item.unit_price
+            subtotal += amount
+            items_data.append([
+                item.description,
+                str(item.quantity),
+                f"${item.unit_price:.2f}",
+                f"${amount:.2f}"
+            ])
+        
+        discount = invoice.discount or 0
+        tax_rate = invoice.tax_rate or 0
+        tax_amount = (subtotal - discount) * (tax_rate / 100)
+        total = subtotal - discount + tax_amount
+
+        # Add totals - use proper styling instead of HTML tags
+        items_data.append(['', '', 'Subtotal:', f"${subtotal:.2f}"])
+        if discount > 0:
+            items_data.append(['', '', 'Discount:', f"-${discount:.2f}"])
+        if tax_rate > 0:
+            items_data.append(['', '', f'Tax ({tax_rate}%):', f"${tax_amount:.2f}"])
+        items_data.append(['', '', 'Total:', f"${total:.2f}"])  # REMOVE HTML TAGS
+
+        items_table = Table(items_data, colWidths=[200, 60, 80, 80])
+        items_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#4B5563')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('FONT', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('ALIGN', (1, 0), (-1, -1), 'RIGHT'),
+            ('FONT', (0, 1), (-1, -2), 'Helvetica'),  # Regular font for most rows
+            ('FONT', (0, -1), (-1, -1), 'Helvetica-Bold'),  # Bold for total row
+            ('FONTSIZE', (0, -1), (-1, -1), 12),  # Larger font for total
+            ('LINEABOVE', (0, -1), (-1, -1), 1, colors.black),  # Line above total
+            ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#E5E7EB')),
+        ]))
+
+        elements.append(items_table)
+        elements.append(Spacer(1, 20))
+
+        # Notes
+        if invoice.notes:
+            elements.append(Paragraph("Notes:", bold_style))
+            elements.append(Paragraph(invoice.notes, normal_style))
+            elements.append(Spacer(1, 12))
+
+        # Footer
+        footer_text =  "Thank you for your business!"
+        footer_style = ParagraphStyle(
+            'Footer',
+            parent=styles['Normal'],
+            fontSize=10,
+            alignment=TA_CENTER
+        )
+        elements.append(Paragraph(footer_text, footer_style))
+
+        # Build PDF
+        doc.build(elements)
+        pdf_content = buffer.getvalue()
+        buffer.close()
+        
+        return pdf_content
+        
+    except Exception as e:
+        logger.error(f"Error generating invoice PDF: {str(e)}")
+        logger.error(traceback.format_exc())
         raise

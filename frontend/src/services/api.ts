@@ -89,4 +89,31 @@ export const invoiceAPI = {
   deleteInvoice: (id: number): Promise<void> =>
     api.delete(`/invoices/${id}`).then(response => response.data),
 
+  markAsPaid: (id: number): Promise<void> =>
+    api.patch(`${API_BASE_URL}/invoices/${id}/mark_paid`, { status: 'paid' }).then(response => response.data),
+
+  downloadPDF: async (id: number): Promise<Blob> => {
+    const response = await fetch(`${API_BASE_URL}/invoices/${id}/pdf`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${tokenService.getToken()}`,
+        'Accept': 'application/pdf',
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to download PDF: ${response.status} ${response.statusText}`);
+    }
+    
+    // Ensure we get the response as blob
+    const blob = await response.blob();
+    
+    // Verify it's a PDF
+    if (blob.type !== 'application/pdf') {
+      console.warn('Response is not a PDF:', blob.type, blob);
+    }
+    
+    return blob;
+  },
+
 };

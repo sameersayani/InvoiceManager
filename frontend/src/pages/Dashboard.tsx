@@ -160,6 +160,37 @@ const handleEditInvoice = async (invoiceSummary: InvoiceSummary) => {
     setInvoiceToDelete(null);
   };
 
+  // Add these functions to your Dashboard component
+const markInvoiceAsPaidAPI = async (invoiceId: number) => {
+  try {
+    await invoiceAPI.markAsPaid(invoiceId);
+    // Refresh the data to show updated status
+    loadData();
+    if (selectedInvoice) {
+      // Reload the selected invoice if it's currently being viewed
+      handleViewInvoice(invoiceId);
+    }
+  } catch (error) {
+    console.error('Error marking invoice as paid:', error);
+    throw error;
+  }
+};
+
+const downloadInvoicePDFAPI = async (invoiceId: number): Promise<Blob> => {
+  try {
+    const blob = await invoiceAPI.downloadPDF(invoiceId);
+    return blob;
+  }
+  catch (error) {
+    console.error('Error downloading invoice PDF:', error);
+    throw error;
+  }
+};  
+
+const navigateBack = (): void => {
+  setSelectedInvoice(null);
+};
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -251,10 +282,15 @@ const handleEditInvoice = async (invoiceSummary: InvoiceSummary) => {
             >
               ← Back to List
             </button> */}
-            <InvoicePreview 
-              invoice={selectedInvoice} 
-              onBack={() => setSelectedInvoice(null)} 
-              companyLogo={companyLogo}
+            <InvoicePreview
+              invoice={selectedInvoice}
+              onBack={() => navigateBack()}
+              onMarkAsPaid={async (invoiceId) => {
+                await markInvoiceAsPaidAPI(invoiceId);
+              }}
+              onDownloadPDF={async (invoiceId) => {
+                return await downloadInvoicePDFAPI(invoiceId);
+              }}
             />
           </div>
         ) : (

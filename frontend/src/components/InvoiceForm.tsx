@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { InvoiceCreate, Client } from '../types';
 import { Combobox } from '@headlessui/react';
-import { invoiceAPI } from '../services/api';
+import { invoiceAPI, logoAPI  } from '../services/api';
 import { LogoUpload } from './LogoUpload';
 
 interface InvoiceFormProps {
@@ -36,6 +36,7 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ clients, onSubmit, onC
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [companyLogo, setCompanyLogo] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   
   const { register, control, handleSubmit, watch, setValue, formState: { errors } } = useForm<FormValues>({
     defaultValues: {
@@ -80,6 +81,7 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ clients, onSubmit, onC
 
   // Auto-fill client details when an existing client is selected
   useEffect(() => {
+    loadUserData();
     if (selectedClient) {
       setValue('client_name', selectedClient.name);
       setValue('client_email', selectedClient.email || '');
@@ -87,6 +89,18 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ clients, onSubmit, onC
       setValue('client_phone', selectedClient.phone || '');
     }
   }, [selectedClient, setValue]);
+
+    const loadUserData = async () => {
+      try {
+        const userData = await logoAPI.getCurrentUser();
+        setCurrentUser(userData);
+        if (userData.logo) {
+          setCompanyLogo(userData.logo);
+        }
+      } catch (err) {
+        console.error('Error loading user data:', err);
+      }
+    };
 
   const handleFormSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
@@ -151,11 +165,11 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ clients, onSubmit, onC
         <LogoUpload onLogoUpload={handleLogoUpload} />
         {companyLogo && (
           <div className="mt-3 flex items-center">
-            <span className="text-sm text-gray-600 mr-3">Current Logo:</span>
+            {/* <span className="text-sm text-gray-600 mr-3">Current Logo:</span> */}
             <img 
               src={companyLogo} 
               alt="Company Logo" 
-              className="w-12 h-12 rounded object-cover border"
+              className="h-20 w-20 object-contain border rounded-lg"
             />
           </div>
         )}
