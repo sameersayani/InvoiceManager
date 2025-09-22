@@ -108,6 +108,7 @@ export interface InvoiceCreate {
   terms?: string;
   items: Omit<InvoiceItem, 'id' | 'invoice_id'>[];
   company_logo?: string;
+  status?: 'draft' | 'sent' | 'paid' | 'overdue';
 }
 
 export interface InvoiceSummary {

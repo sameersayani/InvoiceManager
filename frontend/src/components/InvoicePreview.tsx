@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { Invoice } from '../types';
 import { format } from 'date-fns';
+import { logoAPI, invoiceAPI } from '../services/api';
 
 interface InvoicePreviewProps {
   invoice: Invoice;
@@ -21,10 +22,100 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
   const componentRef = React.useRef<HTMLDivElement>(null);
   const [isMarkingAsPaid, setIsMarkingAsPaid] = useState(false);
   const [isDownloadingPDF, setIsDownloadingPDF] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [logoLoaded, setLogoLoaded] = useState(false);
+  const [base64Logo, setBase64Logo] = useState<string | null>(null);
 
-  const handlePrint = useReactToPrint({
-    content: () => componentRef.current,
+    // Load current user data for "From" section
+  useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        const userData = await logoAPI.getCurrentUser();
+        setCurrentUser(userData);
+      } catch (err) {
+        console.error('Error loading user data:', err);
+      }
+    };
+    
+    loadUserData();
+  }, []);
+  
+    // Handle logo loading
+  useEffect(() => {
+    if (companyLogo) {
+      const img = new Image();
+      img.onload = () => setLogoLoaded(true);
+      img.onerror = () => {
+        console.error('Failed to load logo image');
+        setLogoLoaded(true); // Continue even if logo fails to load
+      };
+      img.src = companyLogo;
+    } else {
+      setLogoLoaded(true); // No logo to load
+    }
+  }, [companyLogo]);
+
+  useEffect(() => {
+  const loadLogo = async () => {
+    if (companyLogo) {
+      try {
+        const base64 = await convertImageToBase64(companyLogo);
+        setBase64Logo(base64);
+        setLogoLoaded(true);
+      } catch (error) {
+        console.error('Failed to convert logo to base64:', error);
+        setLogoLoaded(true);
+      }
+    } else {
+      setLogoLoaded(true);
+    }
+  };
+  
+  loadLogo();
+}, [companyLogo]);
+
+// Add this function to convert image to base64
+const convertImageToBase64 = (url: string): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx?.drawImage(img, 0, 0);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.onerror = reject;
+    img.src = url;
   });
+};
+
+const handlePrint = useReactToPrint({
+  content: () => componentRef.current,
+  onBeforeGetContent: () => {
+    return new Promise((resolve) => {
+      if (logoLoaded) {
+        resolve(undefined); // Add undefined as argument
+      } else {
+        const checkLogoLoaded = setInterval(() => {
+          if (logoLoaded) {
+            clearInterval(checkLogoLoaded);
+            resolve(undefined); // Add undefined as argument
+          }
+        }, 100);
+      }
+    });
+  },
+  pageStyle: `
+    @media print {
+      @page { margin: 20px; }
+      body { -webkit-print-color-adjust: exact; }
+      img { max-width: 100px; height: auto; }
+    }
+  `,
+});
 
   const handleMarkAsPaid = async () => {
       setIsMarkingAsPaid(true);
@@ -39,28 +130,52 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
     }
   };
 
-  const handleDownloadPDF = async () => {
-    setIsDownloadingPDF(true);
-    try {
-      const pdfBlob = await onDownloadPDF(invoice.id);
-      
-      // Create a download link
-      const url = window.URL.createObjectURL(pdfBlob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `invoice-${invoice.invoice_number}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      
-      // Clean up
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(link);
-    } catch (error) {
-      console.error('Failed to download PDF:', error);
-    } finally {
-      setIsDownloadingPDF(false);
-    }
-  };
+  // const handleDownloadPDF = async () => {
+  //   setIsDownloadingPDF(true);
+  //   try {
+  //     const pdfBlob = await onDownloadPDF(invoice.id);
+  //     const url = window.URL.createObjectURL(pdfBlob);
+  //     const link = document.createElement('a');
+  //     link.href = url;
+  //     link.download = `invoice-${invoice.invoice_number}.pdf`;
+  //     document.body.appendChild(link);
+  //     link.click();
+  //     window.URL.revokeObjectURL(url);
+  //     document.body.removeChild(link);
+  //   } catch (error) {
+  //     console.error('Failed to download PDF:', error);
+  //   } finally {
+  //     setIsDownloadingPDF(false);
+  //   }
+  // };
+
+const handleDownloadPDF = async () => {
+  setIsDownloadingPDF(true);
+  try {
+    // Use your existing API service that already handles auth
+    const response = await invoiceAPI.downloadPDF(invoice.id);
+    
+    // If your API returns blob directly
+    const pdfBlob = response;
+    
+    // Create download link
+    const url = window.URL.createObjectURL(pdfBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `invoice-${invoice.invoice_number}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(link);
+    
+  } catch (error) {
+    console.error('Failed to download PDF:', error);
+    alert('Failed to download PDF. Please check your authentication.');
+  } finally {
+    setIsDownloadingPDF(false);
+  }
+};
 
   const subtotal = invoice.items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0);
   const discount = invoice.discount || 0;
@@ -82,13 +197,13 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
   const clientEmail = client.email || 'N/A';
   const clientPhone = client.phone || 'N/A';
 
-  // Safe access to company details from invoice or use defaults
-  const companyName = invoice.client.name || 'Demo Company Inc.';
-  const companyAddress = invoice.client.address || '123 Business Ave, Suite 100';
-  const companyCity = invoice.client.city || 'New York, NY 10001';
-  const companyEmail = invoice.client.email || 'contact@democompany.com';
-  const companyPhone = invoice.client.phone || '+1 (555) 123-4567';
-  const companyTaxId = invoice.client.tax_id || ''; 
+  // Use current user data for "From" section with fallbacks
+  const companyName = currentUser?.company_name || currentUser?.name || 'Your Company Name';
+  const companyAddress = currentUser?.address || '123 Business Ave, Suite 100';
+  const companyCity = currentUser?.city || 'New York, NY 10001';
+  const companyEmail = currentUser?.email || 'contact@yourcompany.com';
+  const companyPhone = currentUser?.phone || '+1 (555) 123-4567';
+  const companyTaxId = currentUser?.tax_id || '';
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -112,7 +227,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
             <div className="text-right">
               {companyLogo ? (
                 <img
-                  src={companyLogo}
+                  src={base64Logo || companyLogo}
                   alt="Company logo"
                   className="w-24 h-24 rounded-lg object-cover mb-2"
                 />
@@ -121,7 +236,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({
                   <span className="text-white font-bold text-xl">LOGO</span>
                 </div>
               )}
-              <p className="text-sm text-gray-600 font-medium">{companyName}</p>
+              {/* <p className="text-sm text-gray-600 font-medium">{companyName}</p> */}
             </div>
           </div>
 

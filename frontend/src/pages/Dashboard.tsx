@@ -285,6 +285,7 @@ const navigateBack = (): void => {
             <InvoicePreview
               invoice={selectedInvoice}
               onBack={() => navigateBack()}
+              companyLogo={companyLogo}
               onMarkAsPaid={async (invoiceId) => {
                 await markInvoiceAsPaidAPI(invoiceId);
               }}

@@ -274,14 +274,17 @@ def generate_invoice_pdf(db: Session, invoice_id: int, user_id: int) -> bytes:
         from reportlab.lib.pagesizes import A4
         from reportlab.lib import colors
         from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
         from reportlab.lib.enums import TA_LEFT, TA_RIGHT, TA_CENTER
         from reportlab.pdfbase import pdfmetrics
         from reportlab.pdfbase.ttfonts import TTFont
         from io import BytesIO
         import base64
+        from PIL import Image as PILImage
+        import io
 
         invoice = get_invoice(db, invoice_id, user_id)
+        user = get_user(db, user_id)
         if not invoice:
             return None
 
@@ -306,33 +309,87 @@ def generate_invoice_pdf(db: Session, invoice_id: int, user_id: int) -> bytes:
             parent=styles['Normal'],
             fontName='Helvetica-Bold'
         )
-        
-        right_align_style = ParagraphStyle(
-            'RightAlign',
-            parent=styles['Normal'],
-            alignment=TA_RIGHT
-        )
-        
-        bold_right_align_style = ParagraphStyle(
-            'BoldRightAlign',
-            parent=styles['Normal'],
-            fontName='Helvetica-Bold',
-            alignment=TA_RIGHT
-        )
 
-        # Title
-        elements.append(Paragraph(f"INVOICE #{invoice.invoice_number}", title_style))
+        # Header with Logo
+        header_table_data = []
+        
+        # Left side: Invoice title
+        invoice_title = Paragraph(f"INVOICE #{invoice.invoice_number}", title_style)
+        
+        # Right side: Logo if available
+        logo_cell = []
+        if user and user.logo:
+            try:
+                # Convert bytea to image
+                if isinstance(user.logo, bytes):
+                    # Create a temporary file-like object from bytes
+                    logo_buffer = io.BytesIO(user.logo)
+                    
+                    # Use PIL to handle the image
+                    pil_image = PILImage.open(logo_buffer)
+                    
+                    # Convert to RGB if necessary (for JPEG compatibility)
+                    if pil_image.mode in ('RGBA', 'P'):
+                        pil_image = pil_image.convert('RGB')
+                    
+                    # Save to a temporary buffer as PNG
+                    temp_buffer = io.BytesIO()
+                    pil_image.save(temp_buffer, format='PNG')
+                    temp_buffer.seek(0)
+                    
+                    # Create ReportLab Image
+                    logo_img = Image(temp_buffer, width=80, height=60)
+                    logo_cell.append(logo_img)
+                    
+                elif isinstance(user.logo, str):
+                    # Handle base64 encoded string
+                    if user.logo.startswith('data:image'):
+                        # Extract base64 data from data URL
+                        header, encoded = user.logo.split(",", 1)
+                        logo_data = base64.b64decode(encoded)
+                        logo_buffer = io.BytesIO(logo_data)
+                        logo_img = Image(logo_buffer, width=80, height=60)
+                        logo_cell.append(logo_img)
+                    else:
+                        # Assume it's a file path or URL (less common for bytea storage)
+                        logo_img = Image(user.logo, width=80, height=60)
+                        logo_cell.append(logo_img)
+                        
+            except Exception as e:
+                logger.warning(f"Could not process logo: {str(e)}")
+                # Fallback: Company name without logo
+                logo_cell.append(Paragraph(user.company_name or "Company Logo", bold_style))
+        else:
+            # No logo available
+            logo_cell.append(Paragraph(user.company_name or "Your Company", bold_style) if user else Paragraph("Company Name", bold_style))
+        
+        # Create header table
+        header_table_data = [
+            [invoice_title, logo_cell[0] if logo_cell else Paragraph("", normal_style)]
+        ]
+        
+        header_table = Table(header_table_data, colWidths=[300, 200])
+        header_table.setStyle(TableStyle([
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('ALIGN', (1, 0), (1, 0), 'RIGHT'),
+        ]))
+        
+        elements.append(header_table)
         elements.append(Spacer(1, 20))
 
-        # Company and Client Info
+        # Company and Client Info in two columns
+        company_client_data = []
+        
+        # Company Info
         company_info = f"""
         <b>From:</b><br/>
-        {invoice.client.name if invoice.client else 'N/A'}<br/>
-        {invoice.client.address if invoice.client else 'N/A'}<br/>
-        {invoice.client.email if invoice.client else 'N/A'}<br/>
-        {invoice.client.phone if invoice.client else 'N/A'}
+        {user.company_name if user and user.company_name else 'Your Company'}<br/>
+        {user.address if user and user.address else '123 Business Street'}<br/>
+        {user.email if user else 'email@company.com'}<br/>
+        {user.phone if user and user.phone else '(555) 123-4567'}
         """
         
+        # Client Info
         client_info = f"""
         <b>To:</b><br/>
         {invoice.client.name if invoice.client else 'N/A'}<br/>
@@ -340,10 +397,13 @@ def generate_invoice_pdf(db: Session, invoice_id: int, user_id: int) -> bytes:
         {invoice.client.email if invoice.client else 'N/A'}<br/>
         {invoice.client.phone if invoice.client else 'N/A'}
         """
-
-        elements.append(Paragraph(company_info, normal_style))
-        elements.append(Spacer(1, 12))
-        elements.append(Paragraph(client_info, normal_style))
+        
+        company_client_data = [
+            [Paragraph(company_info, normal_style), Paragraph(client_info, normal_style)]
+        ]
+        
+        company_client_table = Table(company_client_data, colWidths=[250, 250])
+        elements.append(company_client_table)
         elements.append(Spacer(1, 20))
 
         # Invoice Details
@@ -358,12 +418,13 @@ def generate_invoice_pdf(db: Session, invoice_id: int, user_id: int) -> bytes:
             ('FONT', (0, 0), (-1, -1), 'Helvetica'),
             ('FONT', (0, 0), (0, -1), 'Helvetica-Bold'),
             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#F3F4F6')),
+            ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#E5E7EB')),
         ]))
         
         elements.append(details_table)
         elements.append(Spacer(1, 20))
 
-        # Items Table
+        # Items Table (rest of your existing code remains the same)
         items_data = [['Description', 'Qty', 'Unit Price', 'Amount']]
         
         subtotal = 0
@@ -382,13 +443,12 @@ def generate_invoice_pdf(db: Session, invoice_id: int, user_id: int) -> bytes:
         tax_amount = (subtotal - discount) * (tax_rate / 100)
         total = subtotal - discount + tax_amount
 
-        # Add totals - use proper styling instead of HTML tags
         items_data.append(['', '', 'Subtotal:', f"${subtotal:.2f}"])
         if discount > 0:
             items_data.append(['', '', 'Discount:', f"-${discount:.2f}"])
         if tax_rate > 0:
             items_data.append(['', '', f'Tax ({tax_rate}%):', f"${tax_amount:.2f}"])
-        items_data.append(['', '', 'Total:', f"${total:.2f}"])  # REMOVE HTML TAGS
+        items_data.append(['', '', 'Total:', f"${total:.2f}"])
 
         items_table = Table(items_data, colWidths=[200, 60, 80, 80])
         items_table.setStyle(TableStyle([
@@ -396,24 +456,29 @@ def generate_invoice_pdf(db: Session, invoice_id: int, user_id: int) -> bytes:
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
             ('FONT', (0, 0), (-1, 0), 'Helvetica-Bold'),
             ('ALIGN', (1, 0), (-1, -1), 'RIGHT'),
-            ('FONT', (0, 1), (-1, -2), 'Helvetica'),  # Regular font for most rows
-            ('FONT', (0, -1), (-1, -1), 'Helvetica-Bold'),  # Bold for total row
-            ('FONTSIZE', (0, -1), (-1, -1), 12),  # Larger font for total
-            ('LINEABOVE', (0, -1), (-1, -1), 1, colors.black),  # Line above total
+            ('FONT', (0, 1), (-1, -2), 'Helvetica'),
+            ('FONT', (0, -1), (-1, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, -1), (-1, -1), 12),
+            ('LINEABOVE', (0, -1), (-1, -1), 1, colors.black),
             ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#E5E7EB')),
         ]))
 
         elements.append(items_table)
         elements.append(Spacer(1, 20))
 
-        # Notes
+        # Notes and Terms
         if invoice.notes:
-            elements.append(Paragraph("Notes:", bold_style))
+            elements.append(Paragraph("<b>Notes:</b>", bold_style))
             elements.append(Paragraph(invoice.notes, normal_style))
             elements.append(Spacer(1, 12))
 
+        if invoice.terms:
+            elements.append(Paragraph("<b>Terms & Conditions:</b>", bold_style))
+            elements.append(Paragraph(invoice.terms, normal_style))
+            elements.append(Spacer(1, 12))
+
         # Footer
-        footer_text =  "Thank you for your business!"
+        footer_text = "Thank you for your business!"
         footer_style = ParagraphStyle(
             'Footer',
             parent=styles['Normal'],
@@ -431,5 +496,4 @@ def generate_invoice_pdf(db: Session, invoice_id: int, user_id: int) -> bytes:
         
     except Exception as e:
         logger.error(f"Error generating invoice PDF: {str(e)}")
-        logger.error(traceback.format_exc())
         raise

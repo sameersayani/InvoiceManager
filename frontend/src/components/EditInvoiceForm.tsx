@@ -29,6 +29,7 @@ type FormValues = {
   po_number?: string;
   payment_terms?: string;
   shipping_fee?: number;
+  status: 'draft' | 'paid';
   items: Array<{
     description: string;
     quantity: number;
@@ -70,8 +71,9 @@ export const EditInvoiceForm: React.FC<EditInvoiceFormProps> = ({
       due_date: invoice.due_date ? new Date(invoice.due_date).toISOString().split('T')[0] : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       notes: invoice.notes || '',
       terms: invoice.terms || '',
-      shipping_fee: invoice.shipping_fee || 0
-    },
+      shipping_fee: invoice.shipping_fee || 0,
+      status: invoice.status === 'paid' ? 'paid' : 'draft',
+    }
   });
 
   const filteredClients = query === ""
@@ -89,6 +91,7 @@ export const EditInvoiceForm: React.FC<EditInvoiceFormProps> = ({
   const taxRate = watch('tax_rate') || 0;
   const discount = watch('discount') || 0;
   const shippingFee = watch('shipping_fee') || 0;
+  const status = watch('status');
 
   const subtotal = items.reduce((sum, item) => {
     const quantity = Number(item.quantity) || 0;
@@ -148,6 +151,7 @@ export const EditInvoiceForm: React.FC<EditInvoiceFormProps> = ({
         notes: data.notes || '',
         terms: data.terms || '',
         company_logo: companyLogo,
+        status: data.status,
         items: data.items.map(item => ({
           description: item.description,
           quantity: Number(item.quantity),
@@ -176,6 +180,10 @@ export const EditInvoiceForm: React.FC<EditInvoiceFormProps> = ({
 
   const handleLogoUpload = (logoUrl: string) => {
     setCompanyLogo(logoUrl);
+  };
+
+    const toggleStatus = () => {
+    setValue('status', status === 'draft' ? 'paid' : 'draft');
   };
 
   return (
@@ -501,7 +509,30 @@ export const EditInvoiceForm: React.FC<EditInvoiceFormProps> = ({
             </div>
           </div>
         </div>
-
+        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg mb-6">
+        <span className="text-sm font-medium text-gray-700">Invoice Status</span>
+        <div className="flex items-center space-x-3">
+          <span className={`text-sm font-medium ${status === 'draft' ? 'text-blue-600' : 'text-gray-500'}`}>
+            Draft
+          </span>
+          <button
+            type="button"
+            onClick={toggleStatus}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${
+              status === 'paid' ? 'bg-green-600' : 'bg-gray-200'
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                status === 'paid' ? 'translate-x-6' : 'translate-x-1'
+              }`}
+            />
+          </button>
+          <span className={`text-sm font-medium ${status === 'paid' ? 'text-green-600' : 'text-gray-500'}`}>
+            Paid
+          </span>
+        </div>
+      </div>   
         {/* Notes and Terms */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>

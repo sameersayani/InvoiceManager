@@ -109,6 +109,7 @@ class InvoiceBase(BaseModel):
     discount: Optional[float] = 0.0
     notes: Optional[str] = None
     terms: Optional[str] = None
+    status: Optional[str] = "draft"  # New field for invoice status
 
 class InvoiceCreate(InvoiceBase):
     items: List[InvoiceItemCreate]
