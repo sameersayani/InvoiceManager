@@ -58,6 +58,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     }
   };
 
+ const loadUserLogo = async () => {
+    try {
+      const userData = await logoAPI.getCurrentUser();
+      if (userData.logo) {
+        setCompanyLogo(userData.logo);
+      }
+    } catch (err) {
+      console.error('Error loading user logo:', err);
+    }
+  };
+
   const loadUserData = async () => {
     try {
       const userData = await logoAPI.getCurrentUser();
@@ -81,6 +92,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
       await invoiceAPI.createInvoice(data);
       setShowCreateForm(false);
       loadData(); // Reload the invoices list
+      loadUserLogo();
     } catch (error: any) {
       console.error('Error creating invoice:', error);
       // The error will be handled by the InvoiceForm component itself
@@ -119,6 +131,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
       console.error('Error updating invoice:', error);
       throw error;
     }
+    loadUserData();
   };
 
 const handleEditInvoice = async (invoiceSummary: InvoiceSummary) => {

@@ -141,8 +141,7 @@ def create_invoice(db: Session, invoice: schemas.InvoiceCreate, user_id: int):
         db_invoice = models.Invoice(
             **invoice.dict(exclude={'items'}),
             user_id=user_id,
-            invoice_number=invoice_number,
-            status="draft"
+            invoice_number=invoice_number
         )
         db.add(db_invoice)
         db.commit()

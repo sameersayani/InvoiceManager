@@ -103,7 +103,7 @@ export const EditInvoiceForm: React.FC<EditInvoiceFormProps> = ({
   const taxRateValue = Number(taxRate) || 0;
   const taxAmount = (subtotal - discountAmount) * (taxRateValue / 100);
   const total = subtotal - discountAmount + taxAmount + Number(shippingFee);
-
+  const [currentUser, setCurrentUser] = useState<any>(null);
   // Auto-fill client details when an existing client is selected
   useEffect(() => {
     if (selectedClient) {
@@ -178,8 +178,22 @@ export const EditInvoiceForm: React.FC<EditInvoiceFormProps> = ({
     setValue('client_phone', '');
   };
 
+    const loadUserData = async () => {
+      try {
+        const userData = await logoAPI.getCurrentUser();
+        setCurrentUser(userData);
+        if (userData.logo) {
+          setCompanyLogo(userData.logo);
+        }
+      } catch (err) {
+        console.error('Error loading user data:', err);
+      }
+    };
+  
+
   const handleLogoUpload = (logoUrl: string) => {
     setCompanyLogo(logoUrl);
+     loadUserData();
   };
 
     const toggleStatus = () => {
