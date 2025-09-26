@@ -1,20 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { Dashboard } from './pages/Dashboard';
-import { LoginForm } from './components/LoginForm';
-import { RegisterForm } from './components/RegisterForm';
+import { AuthContainer } from './components/AuthContainer';
 import { tokenService } from './services/auth';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(!!tokenService.getToken());
-  const [showRegister, setShowRegister] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [showRegistrationSuccess, setShowRegistrationSuccess] = useState(false);
 
   useEffect(() => {
-    // Check if user is already authenticated
     const token = tokenService.getToken();
     setIsAuthenticated(!!token);
     setIsLoading(false);
+
+     // Clean up URL - remove /login from address bar
+    if (window.location.pathname === '/login') {
+      window.history.replaceState(null, '', '/');
+    }
   }, []);
 
   const handleLogin = () => {
@@ -26,11 +27,6 @@ function App() {
     setIsAuthenticated(false);
   };
 
-  const handleRegistrationSuccess = () => {
-    setShowRegistrationSuccess(true);
-    setShowRegister(false); // Switch back to login form
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -38,33 +34,9 @@ function App() {
       </div>
     );
   }
-  
-if (!isAuthenticated) {
-    if (showRegistrationSuccess) {
-      return (
-        <LoginForm 
-          onLogin={handleLogin} 
-          onSwitchToRegister={() => {
-            setShowRegistrationSuccess(false);
-            setShowRegister(true);
-          }}
-          registrationSuccess={true}
-        />
-      );
-    }
-    
-    return showRegister ? (
-      <RegisterForm
-        onRegister={handleLogin}
-        onSwitchToLogin={() => setShowRegister(false)}
-        onRegistrationSuccess={handleRegistrationSuccess}
-      />
-    ) : (
-      <LoginForm
-        onLogin={handleLogin}
-        onSwitchToRegister={() => setShowRegister(true)}
-      />
-    );
+
+  if (!isAuthenticated) {
+    return <AuthContainer onLogin={handleLogin} />; // Pass onLogin prop
   }
 
   return <Dashboard onLogout={handleLogout} />;

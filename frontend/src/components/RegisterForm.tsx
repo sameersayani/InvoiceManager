@@ -7,13 +7,15 @@ import { LogoUpload } from './LogoUpload';
 interface RegisterFormProps {
   onRegister: () => void;
   onSwitchToLogin: () => void;
-  onRegistrationSuccess: () => void; // Add this new prop
+  onRegistrationSuccess: () => void; 
+  onBack: () => void;
 }
 
 export const RegisterForm: React.FC<RegisterFormProps> = ({ 
   onRegister, 
   onSwitchToLogin, 
-  onRegistrationSuccess 
+  onRegistrationSuccess,
+  onBack,  
 }) => {
   const [formData, setFormData] = useState<UserCreate>({
     email: '',
@@ -87,10 +89,10 @@ const handleCaptchaVerify = React.useCallback((verified: boolean) => {
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-left">
           {/* Replace with your actual logo path */}
-          <img 
-            src="/images/banner.png" 
-            alt="INVYGO Logo" 
-            className="h-auto w-auto shadow-lg sm:rounded-xl" 
+          <img
+            src="/images/banner.png"
+            alt="INVYGO Logo"
+            className="h-auto w-auto shadow-lg sm:rounded-xl"
           />
         </div>
       </div>
@@ -123,7 +125,15 @@ const handleCaptchaVerify = React.useCallback((verified: boolean) => {
               )}
             </div> */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <button onClick={onBack} className="btn-secondary mb-6">
+                ← Back to Login
+              </button>
+            </div>
+            <div>
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Email address
               </label>
               <input
@@ -138,7 +148,10 @@ const handleCaptchaVerify = React.useCallback((verified: boolean) => {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Password (min 6 characters)
               </label>
               <input
@@ -154,7 +167,10 @@ const handleCaptchaVerify = React.useCallback((verified: boolean) => {
             </div>
 
             <div>
-              <label htmlFor="company_name" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="company_name"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Company / Business Name
               </label>
               <input
@@ -170,7 +186,10 @@ const handleCaptchaVerify = React.useCallback((verified: boolean) => {
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="phone"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Phone
                 </label>
                 <input
@@ -200,7 +219,10 @@ const handleCaptchaVerify = React.useCallback((verified: boolean) => {
             </div>
 
             <div>
-              <label htmlFor="website" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="website"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Website
               </label>
               <input
@@ -214,7 +236,10 @@ const handleCaptchaVerify = React.useCallback((verified: boolean) => {
             </div>
 
             <div>
-              <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="address"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Address
               </label>
               <input
@@ -227,9 +252,9 @@ const handleCaptchaVerify = React.useCallback((verified: boolean) => {
                 className="input-field"
               />
             </div>
-             <CAPTCHA
-              key={captchaReset} 
-              onCaptchaVerify={handleCaptchaVerify} 
+            <CAPTCHA
+              key={captchaReset}
+              onCaptchaVerify={handleCaptchaVerify}
               resetTrigger={captchaReset}
             />
             <div>
@@ -238,7 +263,7 @@ const handleCaptchaVerify = React.useCallback((verified: boolean) => {
                 disabled={isLoading}
                 className="w-full btn-primary disabled:opacity-50"
               >
-                {isLoading ? 'Creating account...' : 'Create account'}
+                {isLoading ? "Creating account..." : "Create account"}
               </button>
             </div>
 

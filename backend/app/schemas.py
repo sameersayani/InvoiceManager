@@ -2,6 +2,13 @@ from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime
 from typing import List, Optional, Union
 
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str
+    
 # Auth Schemas
 class Token(BaseModel):
     access_token: str

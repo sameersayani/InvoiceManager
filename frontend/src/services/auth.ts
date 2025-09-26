@@ -19,6 +19,25 @@ export const authAPI = {
       }
     }
 },
+  forgotPassword: async (data: { email: string }) => { // Change parameter type to object
+    const response = await fetch(`${API_BASE_URL}/forgot-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data), 
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || 'Failed to send reset email');
+    }
+
+    return response.json();
+  },
+
+resetPassword: async (token: string, newPassword: string): Promise<void> =>
+  await axios.post('/auth/reset-password', { token, new_password: newPassword }),
 
   login: async (loginData: UserLogin): Promise<AuthResponse> => {
     try {

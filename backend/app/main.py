@@ -1,9 +1,10 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 import logging
 import traceback
 from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import crud
@@ -18,7 +19,8 @@ from auth import (
     create_access_token, 
     get_current_user, 
     get_current_active_user,
-    ACCESS_TOKEN_EXPIRE_MINUTES
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+    get_password_hash
 )
 
 models.Base.metadata.create_all(bind=engine)
@@ -37,6 +39,32 @@ app.add_middleware(
     allow_headers=["*"],
     expose_headers=["*"] 
 )
+
+def add_reset_token_columns():
+    try:
+        with engine.connect() as conn:
+            # Check if reset_token column exists
+            result = conn.execute(text("""
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name='users' AND column_name='reset_token'
+            """))
+            if not result.fetchone():
+                # Add the columns if they don't exist
+                conn.execute(text("""
+                    ALTER TABLE users 
+                    ADD COLUMN reset_token VARCHAR,
+                    ADD COLUMN reset_token_expires TIMESTAMP
+                """))
+                conn.commit()
+                print("Added reset token columns to users table")
+            else:
+                print("Reset token columns already exist")
+    except Exception as e:
+        print(f"Error adding columns: {e}")
+
+# # Call this function after create_all
+# add_reset_token_columns()
 
 @app.get("/")
 async def root():
@@ -111,7 +139,86 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
             detail="Internal server error during login"
         )
     
+@app.post("/forgot-password")
+async def forgot_password(
+    request: schemas.ForgotPasswordRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Send password reset link to user's email
+    """
+    try:
+        # Find user by email
+        user = crud.get_user_by_email(db, email=request.email)
+        
+        # Always return success even if email doesn't exist (for security)
+        if not user:
+            return {"message": "If the email exists, a password reset link has been sent"}
+        
+        # Generate reset token (32 character hex string)
+        reset_token = secrets.token_urlsafe(32)
+        
+        # Set token expiration (e.g., 1 hour from now)
+        token_expiration = datetime.utcnow() + timedelta(hours=1)
+        
+        # Store token in database
+        user.reset_token = reset_token
+        user.reset_token_expires = token_expiration
+        db.commit()
+        
+        # In a real application, you would send an email here
+        # For now, we'll log the token (remove this in production)
+        logging.info(f"Password reset token for {request.email}: {reset_token}")
+        
+        return {"message": "If the email exists, a password reset link has been sent"}
+        
+    except Exception as e:
+        logging.error(f"Error in forgot password: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error processing password reset request"
+        )
 
+@app.post("/reset-password")
+async def reset_password(
+    request: schemas.ResetPasswordRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Reset user's password using the token
+    """
+    try:
+        # Find user by reset token
+        user = db.query(models.User).filter(
+            models.User.reset_token == request.token,
+            models.User.reset_token_expires > datetime.utcnow()
+        ).first()
+        
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid or expired reset token"
+            )
+        
+        # Hash new password and update user
+        user.hashed_password = get_password_hash(request.new_password)
+        
+        # Clear reset token
+        user.reset_token = None
+        user.reset_token_expires = None
+        
+        db.commit()
+        
+        return {"message": "Password reset successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Error resetting password: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error resetting password"
+        )
 
 @app.post("/users/logo", response_model=schemas.LogoResponse)
 async def upload_logo(

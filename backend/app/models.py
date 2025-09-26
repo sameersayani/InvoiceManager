@@ -1,3 +1,5 @@
+from datetime import datetime
+from typing import Optional
 from sqlalchemy import Column, Integer, String, Float, DateTime, Boolean, Text, ForeignKey, LargeBinary
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -21,6 +23,8 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=func.now())
     
+    reset_token = Column(String, nullable=True)
+    reset_token_expires = Column(DateTime, nullable=True)
     # Relationships - using 'owner' as the back reference
     invoices = relationship("Invoice", back_populates="owner", cascade="all, delete-orphan")
     clients = relationship("Client", back_populates="user", cascade="all, delete-orphan")

@@ -2,48 +2,61 @@
 import React, { useState } from 'react';
 import { LoginForm } from './LoginForm';
 import { RegisterForm } from './RegisterForm';
+import { ForgotPasswordForm } from './ForgotPasswordForm';
+interface AuthContainerProps {
+  onLogin: () => void; // Add this interface
+}
 
-export const AuthContainer: React.FC = () => {
-  const [isLogin, setIsLogin] = useState(true);
+export const AuthContainer: React.FC<AuthContainerProps> = ({ onLogin }) => {
+  const [currentView, setCurrentView] = useState<'login' | 'register' | 'forgot-password'>('login');
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
 
-  const handleSwitchToRegister = () => {
-    setIsLogin(false);
+  const handleForgotPassword = () => {
+    console.log('Switching to forgot password view');
+    setCurrentView('forgot-password');
   };
 
-  const handleSwitchToLogin = () => {
-    setIsLogin(true);
-  };
-
-  const handleLogin = () => {
-    // Handle successful login (redirect or update state)
+  // Use the onLogin prop from parent
+  const handleLoginSuccess = () => {
     console.log('User logged in successfully');
+    onLogin(); // Call the parent's login handler
   };
 
   const handleRegistrationSuccess = () => {
     setRegistrationSuccess(true);
-    setIsLogin(true); // Switch back to login after successful registration
+    setCurrentView('login');
     
-    // Optional: Show a success message on the login form
     setTimeout(() => {
       setRegistrationSuccess(false);
     }, 3000);
   };
 
+  if (currentView === 'forgot-password') {
+    return (
+      <ForgotPasswordForm 
+        onBackToLogin={() => setCurrentView('login')}
+        onSwitchToRegister={() => setCurrentView('register')}
+      />
+    );
+  }
+
+  if (currentView === 'register') {
+    return (
+      <RegisterForm
+        onRegister={handleRegistrationSuccess}
+        onSwitchToLogin={() => setCurrentView('login')}
+        onRegistrationSuccess={handleRegistrationSuccess}
+        onBack={() => setCurrentView('login')}
+      />
+    );
+  }
+
   return (
-    <div>
-      {isLogin ? (
-        <LoginForm 
-          onLogin={handleLogin} 
-          onSwitchToRegister={handleSwitchToRegister}
-        />
-      ) : (
-        <RegisterForm 
-          onRegister={() => {}} // This might not be needed if you're using onRegistrationSuccess
-          onSwitchToLogin={handleSwitchToLogin}
-          onRegistrationSuccess={handleRegistrationSuccess}
-        />
-      )}
-    </div>
+    <LoginForm 
+      onLogin={handleLoginSuccess} // Use the new handler
+      onSwitchToRegister={() => setCurrentView('register')}
+      onForgotPassword={handleForgotPassword}
+      registrationSuccess={registrationSuccess}
+    />
   );
 };
