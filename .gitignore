@@ -1,8 +1,10 @@
 backend/node_modules/
 backend/app/
+backend/venv
 .DS_Store
 dist
 .env
 .vscode
 frontend/node_modules
 frontend/dist
+frontend/venv
