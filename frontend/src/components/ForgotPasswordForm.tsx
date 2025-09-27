@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { authAPI } from '../services/auth';
+import CookieConsent from './Common/CookieConsent';
 
 interface ForgotPasswordFormProps {
   onBackToLogin: () => void;
@@ -136,6 +137,7 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
           </div>
         </div>
       </div>
+      <CookieConsent />
     </div>
   );
 };

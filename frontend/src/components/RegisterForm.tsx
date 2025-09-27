@@ -3,6 +3,8 @@ import { UserCreate } from '../types';
 import { authAPI } from '../services/auth';
 import { CAPTCHA } from './Common/Captcha';
 import { LogoUpload } from './LogoUpload';
+import CookieConsent from './Common/CookieConsent';
+
 
 interface RegisterFormProps {
   onRegister: () => void;
@@ -75,6 +77,15 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
       setError('');
     }
   };
+
+  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const { name, value } = e.target;
+  setFormData(prev => ({
+    ...prev,
+    [name]: value
+  }));
+};
+
 
 const handleCaptchaVerify = React.useCallback((verified: boolean) => {
   setIsCaptchaVerified(verified);
@@ -177,6 +188,7 @@ const handleCaptchaVerify = React.useCallback((verified: boolean) => {
                 id="company_name"
                 name="company_name"
                 type="text"
+                maxLength={512}
                 required
                 value={formData.company_name}
                 onChange={handleChange}
@@ -190,12 +202,13 @@ const handleCaptchaVerify = React.useCallback((verified: boolean) => {
                   htmlFor="phone"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Phone
+                  Phone number
                 </label>
                 <input
                   id="phone"
                   name="phone"
                   type="tel"
+                  maxLength={20}
                   required
                   value={formData.phone}
                   onChange={handleChange}
@@ -220,6 +233,28 @@ const handleCaptchaVerify = React.useCallback((verified: boolean) => {
 
             <div>
               <label
+                htmlFor="address"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Full Address
+              </label>
+              <textarea
+                  id="address"
+                  name="address"
+                  rows={4}
+                  cols={50}
+                  required
+                  value={formData.address}
+                  minLength={10}
+                  maxLength={5042}
+                  onChange={handleTextareaChange}
+                  className="input-field"
+                  placeholder="Enter your full address"
+                />
+            </div>
+
+            <div>
+              <label
                 htmlFor="website"
                 className="block text-sm font-medium text-gray-700"
               >
@@ -229,29 +264,13 @@ const handleCaptchaVerify = React.useCallback((verified: boolean) => {
                 id="website"
                 name="website"
                 type="url"
+                maxLength={2048}
                 value={formData.website}
                 onChange={handleChange}
                 className="input-field"
               />
             </div>
 
-            <div>
-              <label
-                htmlFor="address"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Address
-              </label>
-              <input
-                id="address"
-                name="address"
-                type="text"
-                required
-                value={formData.address}
-                onChange={handleChange}
-                className="input-field"
-              />
-            </div>
             <CAPTCHA
               key={captchaReset}
               onCaptchaVerify={handleCaptchaVerify}
@@ -279,6 +298,7 @@ const handleCaptchaVerify = React.useCallback((verified: boolean) => {
           </form>
         </div>
       </div>
+      <CookieConsent />
     </div>
   );
 };

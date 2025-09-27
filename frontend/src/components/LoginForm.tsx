@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { UserLogin } from '../types';
 import { authAPI, tokenService } from '../services/auth';
+import CookieConsent from './Common/CookieConsent';
 
 interface LoginFormProps {
   onLogin: () => void;
@@ -174,6 +175,7 @@ const handleForgotPasswordClick = () => {
               </form>
             </div>
           </div>
+          <CookieConsent />
         </div>
     </div>
   );
