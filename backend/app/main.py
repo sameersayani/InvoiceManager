@@ -7,15 +7,15 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 from typing import List, Optional
-import crud
-import models
-import schemas
-from database import SessionLocal, engine, get_db
+from app import crud
+from app import models
+from app import schemas
+from app.database import SessionLocal, engine, get_db
 import base64
 import io
 from PIL import Image
 import secrets
-from auth import (
+from app.auth import (
     create_access_token, 
     get_current_user, 
     get_current_active_user,
