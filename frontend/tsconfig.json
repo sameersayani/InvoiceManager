@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "checkJs": true,        // ✅ Enables error reporting in .js files
+    "allowJs": true,        // ✅ Allows JS files to be part of the project
+    "noEmit": true,          // ✅ Don't output compiled files
+    "esModuleInterop": true,
+  },
+  "include": [
+    "src"
+  ]
+}
