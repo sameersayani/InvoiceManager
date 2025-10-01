@@ -2,11 +2,11 @@ import axios from 'axios';
 import { tokenService } from './auth'
 import { Invoice, InvoiceCreate, Client, InvoiceSummary, User, LogoResponse, ClientCreate } from '../types';
 
-const API_BASE_URL = 'http://localhost:8000';
+const REACT_APP_API_URL = 'http://localhost:8000';
 
 // Create a single axios instance
 export const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: REACT_APP_API_URL,
   headers: {
     'Content-Type': 'application/json',
   }
@@ -90,10 +90,10 @@ export const invoiceAPI = {
     api.delete(`/invoices/${id}`).then(response => response.data),
 
   markAsPaid: (id: number): Promise<void> =>
-    api.patch(`${API_BASE_URL}/invoices/${id}/mark_paid`, { status: 'paid' }).then(response => response.data),
+    api.patch(`${REACT_APP_API_URL}/invoices/${id}/mark_paid`, { status: 'paid' }).then(response => response.data),
 
   downloadPDF: async (id: number): Promise<Blob> => {
-    const response = await fetch(`${API_BASE_URL}/invoices/${id}/pdf`, {
+    const response = await fetch(`${REACT_APP_API_URL}/invoices/${id}/pdf`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${tokenService.getToken()}`,

@@ -1,12 +1,12 @@
 import axios from 'axios';
 import { UserCreate, UserLogin, AuthResponse, User } from '../types';
 
-const API_BASE_URL = 'http://localhost:8000';
+const REACT_APP_API_URL = 'http://localhost:8000';
 
 export const authAPI = {
   register: async (userData: UserCreate): Promise<User> => {
     try {
-        const response = await axios.post(`${API_BASE_URL}/register`, userData).then(response => response.data);
+        const response = await axios.post(`${REACT_APP_API_URL}/register`, userData).then(response => response.data);
         return response;
     } catch (error: any) {
       // Make sure to throw the error with proper details
@@ -20,7 +20,7 @@ export const authAPI = {
     }
 },
   forgotPassword: async (data: { email: string }) => { // Change parameter type to object
-    const response = await fetch(`${API_BASE_URL}/forgot-password`, {
+    const response = await fetch(`${REACT_APP_API_URL}/forgot-password`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -41,7 +41,7 @@ resetPassword: async (token: string, newPassword: string): Promise<void> =>
 
   login: async (loginData: UserLogin): Promise<AuthResponse> => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/login`, 
+      const response = await axios.post(`${REACT_APP_API_URL}/login`, 
         `username=${encodeURIComponent(loginData.email)}&password=${encodeURIComponent(loginData.password)}`,
         {
           headers: {
@@ -63,7 +63,7 @@ resetPassword: async (token: string, newPassword: string): Promise<void> =>
   },
 
   getCurrentUser: (token: string): Promise<User> =>
-    axios.get(`${API_BASE_URL}/users/me`, {
+    axios.get(`${REACT_APP_API_URL}/users/me`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
