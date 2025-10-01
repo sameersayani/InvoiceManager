@@ -2,7 +2,7 @@ import axios from 'axios';
 import { tokenService } from './auth'
 import { Invoice, InvoiceCreate, Client, InvoiceSummary, User, LogoResponse, ClientCreate } from '../types';
 
-const REACT_APP_API_URL = 'http://localhost:8000';
+const REACT_APP_API_URL = import.meta.env.VITE_API_URL;
 
 // Create a single axios instance
 export const api = axios.create({

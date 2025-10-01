@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { UserCreate, UserLogin, AuthResponse, User } from '../types';
 
-const REACT_APP_API_URL = 'http://localhost:8000';
+const REACT_APP_API_URL = import.meta.env.VITE_API_URL;
 
 export const authAPI = {
   register: async (userData: UserCreate): Promise<User> => {
