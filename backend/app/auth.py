@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import os
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
@@ -7,10 +8,21 @@ from sqlalchemy.orm import Session
 from app import crud
 from app.database import get_db
 
-# Secret key and algorithm
-SECRET_KEY = "your-secret-key-here-change-this-in-production"  # Change this in production!
+# # Secret key and algorithm
+# SECRET_KEY = "your-secret-key-here-change-this-in-production"  # Change this in production!
+# ALGORITHM = "HS256"
+# ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+# Read from environment variables; fallback to default for local development
+SECRET_KEY = os.getenv(
+    "SECRET_KEY",
+    "your-secret-key-here-change-this-in-production"  # Only for local development!
+)
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
+
+# Optional helper for token expiration
+ACCESS_TOKEN_EXPIRE = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
