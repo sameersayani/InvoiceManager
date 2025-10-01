@@ -1,16 +1,19 @@
 {
   "compilerOptions": {
-    "target": "esnext",
-    "module": "esnext",
-    "jsx": "react-jsx",   // ✅ Required for React 17+ (new JSX transform)
-    "moduleResolution": "node",
-    "esModuleInterop": true,
+    "target": "ES6",
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "allowJs": true,
-    "checkJs": true,
-    "noEmit": true,
-    "strict": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx"   // ✅ This fixes TS17004
   },
   "include": ["src"]
 }
