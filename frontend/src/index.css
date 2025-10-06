@@ -5,6 +5,19 @@
 @layer base {
   body {
     @apply bg-gray-50 text-gray-900;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden; /* Only hide horizontal overflow */
+  }
+  
+  html {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden; /* Only hide horizontal overflow */
+  }
+  
+  #root {
+    min-height: 100vh;
   }
 }
 
@@ -37,3 +50,45 @@
     @apply px-6 py-4 whitespace-nowrap text-sm text-gray-900;
   }
 }
+
+/* FIXED: Updated background class to allow scrolling */
+.background {
+    background: linear-gradient(135deg, #1a2a3a 0%, #0d1b2a 100%);
+    min-height: 100vh; /* Use min-height instead of fixed height */
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start; /* Change from space-between to flex-start */
+    overflow-y: auto; /* Allow vertical scrolling */
+    overflow-x: hidden; /* Prevent horizontal scrolling */
+    margin: 0;
+    padding: 1.5rem;
+    box-sizing: border-box;
+    position: relative; /* Change from fixed to relative */
+}
+
+.contact-info {
+    font-family: 'Arial', sans-serif;
+    color: rgba(255, 255, 255, 0.7);
+    text-align: center;
+    font-size: 14px;
+    line-height: 1.5;
+    flex-shrink: 0;
+    margin-top: auto; /* Push to bottom but allow content above */
+}
+
+/* Remove or comment out these restrictive styles */
+/*
+html, body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    height: 100%;
+}
+
+#root {
+    height: 100%;
+    overflow: hidden;
+}
+*/
