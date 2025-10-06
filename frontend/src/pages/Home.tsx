@@ -24,10 +24,10 @@ export const Home: React.FC = () => {
       </div>
       
       <div className="contact-info py-4">
-        All rights reserved © Yesitech Solutions
+        Designed & Developed with ❤️ by <span className="text-white">Yesitech</span>
       </div>
       <div className="footer-ad w-full">
-        <GoogleAdSense slot="1234567890" format="auto" responsive={true} />
+        <GoogleAdSense slot="2430391325" format="auto" responsive={true} />
       </div>
     </section>
   );

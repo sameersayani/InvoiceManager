@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { tokenService } from "../services/auth";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { GoogleAdSense } from "../components/Common/GoogleAdSense";
 
 export const Products: React.FC = () => {
   const navigate = useNavigate();
@@ -138,6 +139,9 @@ const handleProductClick = (productName: string) => {
           <p className="text-gray-400">
             Designed & Developed with ❤️ by <span className="text-white">Yesitech</span>
           </p>
+        </div>
+        <div className="footer-ad w-full">
+        <GoogleAdSense slot="2430391325" format="auto" responsive={true} />
         </div>
       </div>
     </section>
