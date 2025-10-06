@@ -1,4 +1,5 @@
 import React from "react";
+import { GoogleAdSense } from "../components/Common/GoogleAdSense";
 
 export const Home: React.FC = () => {
   return (
@@ -24,6 +25,9 @@ export const Home: React.FC = () => {
       
       <div className="contact-info py-4">
         All rights reserved © Yesitech Solutions
+      </div>
+      <div className="footer-ad w-full">
+        <GoogleAdSense slot="1234567890" format="auto" responsive={true} />
       </div>
     </section>
   );
