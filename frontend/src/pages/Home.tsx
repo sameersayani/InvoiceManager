@@ -1,5 +1,6 @@
 import React from "react";
 import GoogleAdSense from "../components/Common/GoogleAdSense";
+import { Link } from "react-router-dom";
 
 export const Home: React.FC = () => {
   return (
@@ -14,12 +15,12 @@ export const Home: React.FC = () => {
             Yesitech is a freelance software solution provider which provides software services such as website, restful services & apis using .NET Core, Nodejs and Python, database services using SQL, Mongo & Postgres, advance search using elastic and reporting services using SSRS reports and simple text/hml/csv reports. We also deal in content writing and proof reading along with technical support on your existing projects for feature enhancements and bug fixing. Also deal in hosting and domain using our third party partner.
             Happy to hear back from you with our technical services and support.
           </p>
-          <a
-            href="/services"
+         <Link
+            to="/services"
             className="bg-[#7e3af2] text-white px-6 py-3 rounded-lg shadow hover:bg-[#6a2ee6] transition inline-block"
           >
             Explore Our Services
-          </a>
+          </Link>
         </div>
       </div>
       
