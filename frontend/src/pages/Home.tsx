@@ -1,5 +1,5 @@
 import React from "react";
-import { GoogleAdSense } from "../components/Common/GoogleAdSense";
+import GoogleAdSense from "../components/Common/GoogleAdSense";
 
 export const Home: React.FC = () => {
   return (

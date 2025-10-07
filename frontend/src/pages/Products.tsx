@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { tokenService } from "../services/auth";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { GoogleAdSense } from "../components/Common/GoogleAdSense";
+import GoogleAdSense from "../components/Common/GoogleAdSense";
 
 export const Products: React.FC = () => {
   const navigate = useNavigate();
