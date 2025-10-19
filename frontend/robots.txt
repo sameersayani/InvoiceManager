@@ -1,0 +1,13 @@
+# robots.txt for https://yesitech.com
+
+# Allow all search engines to crawl the main site
+User-agent: *
+Disallow: /admin/
+Disallow: /login/
+Disallow: /register/
+Disallow: /cgi-bin/
+Disallow: /tmp/
+Disallow: /private/
+
+# Sitemap location
+Sitemap: https://yesitech.com/sitemap.xml
