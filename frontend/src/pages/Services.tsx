@@ -27,6 +27,11 @@ export const Services: React.FC = () => {
       desc: "Expert database design and management with SQL, MongoDB, and PostgreSQL.",
       icon: "🗄️"
     },
+    {
+      title: "Rest API Services", 
+      desc: "Design and implement RESTful APIs for seamless integration between front-end and back-end systems.",
+      icon: "🌐"
+    },
     { 
       title: "Technical Support", 
       desc: "Ongoing maintenance, bug fixes, and feature enhancements for existing projects.",

@@ -32,6 +32,27 @@ export const Products: React.FC = () => {
     },
     {
       id: 2,
+      name: "ExchangeRateApi",
+      tagline: "Get Latest Currency Exchange Rates free by consuming our API",
+      description: "Integrate real-time currency exchange rates into your applications with our free and reliable Exchange Rate API. Perfect for financial apps, e-commerce platforms, and more.",
+      features: [
+        "Real-time exchange rate data",
+        "Supports multiple currencies",
+        "Easy API integration",
+        "Free access with generous rate limits",
+        "Comprehensive documentation",
+        "Reliable and accurate data"
+      ],
+      benefits: [
+        "Enhance your applications with up-to-date currency data",
+        "Improve user experience with accurate conversions",
+        "Save development time with easy integration",
+        "Access a wide range of currencies for global reach"
+      ],
+      icon: "💱"
+    },
+    {
+      id: 3,
       name: "Expensely",
       tagline: "Smart Expense Tracker",
       description: "Take control of your finances with our comprehensive expense tracking system. Monitor your spending patterns and optimize your savings over time.",
@@ -54,6 +75,10 @@ export const Products: React.FC = () => {
   ];
 
 const handleProductClick = (productName: string) => {
+  if(productName === "ExchangeRateApi") {
+    window.open("https://exchangerate-3.onrender.com/docs", "_blank");
+    return;
+  }
   if (productName === "Invygo") {
     const isAuthenticated = !!tokenService.getToken();
     
@@ -64,7 +89,7 @@ const handleProductClick = (productName: string) => {
     }
   } else {
     // Show a message for Expensely
-    toast.info("Expensely : Expense Management System is coming soon!");
+    toast.info("Expensely : Expense Management System is coming soon.. Stay tuned!");
   }
 };
 
