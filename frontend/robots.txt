@@ -11,3 +11,52 @@ Disallow: /private/
 
 # Sitemap location
 Sitemap: https://yesitech.com/sitemap.xml
+
+# LLM Security Headers
+
+User-agent: ChatGPT-User
+Disallow: /api/
+Disallow: /private/
+Allow: /public/
+Allow: /docs/
+
+User-agent: GPTBot
+Disallow: /api/
+Disallow: /private/
+Allow: /public/
+Allow: /docs/
+
+User-agent: GoogleBot
+Disallow: /api/
+Disallow: /private/
+Allow: /public/
+Allow: /docs/
+
+User-agent: Anthropic-AI
+Disallow: /api/
+Disallow: /private/
+Allow: /public/
+Allow: /docs/
+
+User-agent: CCBot
+Disallow: /api/
+Disallow: /private/
+Allow: /public/
+Allow: /docs/
+
+# Common Crawl
+User-agent: CCBot
+Disallow: /api/
+Disallow: /private/
+Allow: /public/
+Allow: /docs/
+
+# Claude AI
+User-agent: Claude-Web
+Disallow: /api/
+Disallow: /private/
+Allow: /public/
+Allow: /docs/
+
+# Specific Content Access Control
+X-Robots-Tag: noai, noimageai

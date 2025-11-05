@@ -3,7 +3,7 @@
 
   <!-- Homepage -->
   <url>
-    <loc>https://yesitech.com/</loc>
+    <loc>https://yesitech.com</loc>
     <lastmod>2025-10-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
@@ -27,18 +27,10 @@
 
   <!-- Portfolio / Projects -->
   <url>
-    <loc>https://yesitech.com/portfolio</loc>
+    <loc>https://yesitech.com/products</loc>
     <lastmod>2025-10-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
-  </url>
-
-  <!-- Blog -->
-  <url>
-    <loc>https://yesitech.com/blog</loc>
-    <lastmod>2025-10-19</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
   </url>
 
   <!-- Contact Page -->
