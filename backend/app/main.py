@@ -34,7 +34,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", 
-                   "https://invoice-frontend-7ktd.onrender.com",
+                   "https://invoicemanager-1.onrender.com",
                    "https://yesitech.com",
                    "https://invygo.yesitech.com"],
     allow_credentials=True,
