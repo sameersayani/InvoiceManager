@@ -4,6 +4,7 @@ import traceback
 from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 from typing import List, Optional
@@ -540,6 +541,31 @@ def mark_invoice_as_paid(
         # logger.error(f"Error marking invoice as paid: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error marking invoice as paid: {str(e)}")
     
+
+# Serve frontend static files with SPA fallback
+# This must be AFTER all API routes - it catches unmatched routes and serves index.html
+import os
+from pathlib import Path
+
+# Try multiple possible paths for frontend/dist
+backend_dir = Path(__file__).parent.parent
+possible_paths = [
+    backend_dir.parent / "frontend" / "dist",  # ../frontend/dist (relative to backend/)
+    Path("/opt/render/project/src/frontend/dist"),  # Render absolute path
+    Path("frontend/dist"),  # CWD relative
+]
+
+frontend_dist_path = None
+for path in possible_paths:
+    if path.exists() and path.is_dir():
+        frontend_dist_path = str(path)
+        break
+
+if frontend_dist_path:
+    app.mount("/", StaticFiles(directory=frontend_dist_path, html=True), name="frontend")
+else:
+    print(f"Warning: Frontend dist not found in any of: {[str(p) for p in possible_paths]}")
+
 
 if __name__ == "__main__":
     import os
