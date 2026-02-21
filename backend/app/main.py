@@ -22,6 +22,8 @@ from app.auth import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
     get_password_hash
 )
+from fastapi.staticfiles import StaticFiles
+import os
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -30,6 +32,8 @@ app = FastAPI(
     description="A complete invoice management system",
     version="1.0.0"
 )
+
+app.mount("/", StaticFiles(directory="frontend/dist", html=True), name="frontend")
 
 app.add_middleware(
     CORSMiddleware,
