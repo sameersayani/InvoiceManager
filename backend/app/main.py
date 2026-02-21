@@ -34,8 +34,6 @@ app = FastAPI(
     version="1.0.0"
 )
 
-app.mount("/", StaticFiles(directory="frontend/dist", html=True), name="frontend")
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", 
