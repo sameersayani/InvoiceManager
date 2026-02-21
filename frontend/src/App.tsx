@@ -34,10 +34,10 @@ function App() {
     setIsAuthenticated(!!token);
     setIsLoading(false);
 
-    // Clean up URL - remove /login from address bar
-    if (window.location.pathname === '/login') {
-      window.history.replaceState(null, '', '/');
-    }
+  ////   // Clean up URL - remove /login from address bar
+  //   if (window.location.pathname === '/login') {
+  //     window.history.replaceState(null, '', '/');
+  //   }
   }, []);
 
   const handleLogin = () => {
