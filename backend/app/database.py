@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 # Keep existing env fallback but prefer using DATABASE_URL from env
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql://sameer:noBMvy9dwXzCjAoNvbsp83vN789PFsco@dpg-d4t9k7khg0os73cp6jh0-a.oregon-postgres.render.com/invoice_db_jrr1_9kkl"
+    "postgresql://sameer:adJrKqPypaC0FUfvrIF23VPFoWqsztNt@dpg-d6cp3l14tr6s73cb5a8g-a.oregon-postgres.render.com/invoice_db_jrr1_f6qs"
 )
 
 # Ensure SSL mode for hosted Postgres providers (Render, Heroku, etc.)

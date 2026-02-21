@@ -218,7 +218,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Grant permissions (adjust as needed for your setup)
-GRANT ALL PRIVILEGES ON DATABASE invoice_db TO postgres;
+GRANT ALL PRIVILEGES ON DATABASE invoice_db_jrr1_f6qs TO postgres;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO postgres;
 GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO postgres;
 GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO postgres;
