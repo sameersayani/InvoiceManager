@@ -151,7 +151,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
               <button
                 type="button"
                 onClick={onSwitchToRegister}
-                className="text-[#7e3af2] hover:text-[#6a2ee6] text-sm font-medium transition-colors duration-200 block w-full"
+                className="text-white hover:text-yellow-300 text-sm font-semibold transition-colors duration-200 block w-full"
               >
                 Don't have an account? Sign up
               </button>

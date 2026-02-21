@@ -116,7 +116,7 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
               <button
                 type="button"
                 onClick={onSwitchToRegister}
-                className="text-gray-300 hover:text-white text-sm font-medium transition-colors duration-200 block w-full"
+                className="text-white hover:text-yellow-300 text-sm font-semibold transition-colors duration-200 block w-full"
               >
                 Don't have an account? Sign up
               </button>
