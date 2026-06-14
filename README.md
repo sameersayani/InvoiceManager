@@ -6,10 +6,13 @@ InvoiceManager is a full-stack Invoice Generator and Management web application 
 
 — Login to your account to access company invoices and settings.
 - ![Login](Presentation/1.%20Login.png) 
+
 — Overview dashboard showing recent invoices, totals and quick actions.
-- ![Dashboard](Presentation/2.%20Dashboard-Invoice.png) 
+- ![Dashboard](Presentation/2.%20Dashboard-Invoice.png)
+
  — Create or update invoices, add line items, taxes and discounts.
 - ![Create / Update Invoice](Presentation/3.%20Create-Update-Invoice.png)
+
 — View, download (PDF) and send invoices to clients.
 - ![View Invoice](Presentation/4.%20View-Invoice.png) 
 
