@@ -51,6 +51,7 @@ dependencies = [
     "shellingham (==1.5.4)",
     "virtualenv (==20.34.0)",
     "zstandard (==0.25.0)"
+    ,"python-dotenv (==1.0.0)"
 ]
 
 

@@ -25,6 +25,10 @@ from app.auth import (
 )
 from fastapi.staticfiles import StaticFiles
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from a .env file if present (development convenience)
+load_dotenv()
 
 models.Base.metadata.create_all(bind=engine)
 

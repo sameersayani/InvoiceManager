@@ -38,6 +38,8 @@ Prerequisites:
 - Node.js 18+ and npm
 - PostgreSQL (or Docker)
 
+Note: a `.env.example` file is included. Copy it to `.env` and set `DATABASE_URL` with your credentials. The backend will fall back to a local `sqlite` file when `DATABASE_URL` is not set (useful for development).
+
 Clone the repo:
 
 ```bash
@@ -55,6 +57,8 @@ venv\Scripts\activate
 # macOS / Linux
 source venv/bin/activate
 pip install -r requirements.txt
+# Optional: install local development extras (loads `.env` automatically)
+pip install -r requirements-local.txt
 # Set DATABASE_URL to point to your local Postgres or a hosted DB
 export DATABASE_URL=postgresql://user:pass@localhost:5432/invoice_db
 # (Windows PowerShell)
