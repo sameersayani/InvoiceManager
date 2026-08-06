@@ -7,6 +7,7 @@ from app.database import Base
 
 class User(Base):
     __tablename__ = "users"
+    __table_args__ = {"schema": "inv"}
     
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True)
@@ -31,9 +32,10 @@ class User(Base):
 
 class Client(Base):
     __tablename__ = "clients"
+    __table_args__ = {"schema": "inv"}
     
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
+    user_id = Column(Integer, ForeignKey("inv.users.id"))
     name = Column(String, index=True)
     email = Column(String)
     phone = Column(String)
@@ -47,11 +49,12 @@ class Client(Base):
 
 class Invoice(Base):
     __tablename__ = "invoices"
+    __table_args__ = {"schema": "inv"}
     
     id = Column(Integer, primary_key=True, index=True)
     invoice_number = Column(String, unique=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
-    client_id = Column(Integer, ForeignKey("clients.id"))
+    user_id = Column(Integer, ForeignKey("inv.users.id"))
+    client_id = Column(Integer, ForeignKey("inv.clients.id"))
     issue_date = Column(DateTime, default=func.now())
     due_date = Column(DateTime)
     status = Column(String, default="draft")  # draft, sent, paid, overdue
@@ -67,9 +70,10 @@ class Invoice(Base):
 
 class InvoiceItem(Base):
     __tablename__ = "invoice_items"
+    __table_args__ = {"schema": "inv"}
     
     id = Column(Integer, primary_key=True, index=True)
-    invoice_id = Column(Integer, ForeignKey("invoices.id"))
+    invoice_id = Column(Integer, ForeignKey("inv.invoices.id"))
     description = Column(String)
     quantity = Column(Float)
     unit_price = Column(Float)

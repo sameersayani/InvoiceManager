@@ -62,7 +62,7 @@ def add_reset_token_columns():
             if not result.fetchone():
                 # Add the columns if they don't exist
                 conn.execute(text("""
-                    ALTER TABLE users 
+                    ALTER TABLE inv.users 
                     ADD COLUMN reset_token VARCHAR,
                     ADD COLUMN reset_token_expires TIMESTAMP
                 """))
