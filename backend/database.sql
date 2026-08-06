@@ -1,5 +1,3 @@
-Begin Transaction;
-
 --CREATE SCHEMA IF NOT EXISTS inv;
 -- Create tables
 CREATE TABLE IF NOT EXISTS inv.users (
