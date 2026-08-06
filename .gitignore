@@ -1,5 +1,4 @@
 backend/node_modules/
-backend/app/
 backend/venv
 .DS_Store
 dist
@@ -8,3 +7,4 @@ dist
 frontend/node_modules
 frontend/dist
 frontend/venv
+backend/app/__pycache__/
