@@ -38,16 +38,34 @@ app = FastAPI(
     version="1.0.0"
 )
 
+DEFAULT_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "https://invoicemanager-1.onrender.com",
+    "https://invoicemanager-2-5b57.onrender.com",
+    "https://yesitech.com",
+    "https://www.yesitech.com",
+    "https://invygo.yesitech.com",
+]
+
+configured_origins = os.getenv("CORS_ALLOWED_ORIGINS", "")
+allowed_origins = [
+    origin.strip()
+    for origin in configured_origins.split(",")
+    if origin.strip()
+]
+for origin in DEFAULT_ALLOWED_ORIGINS:
+    if origin not in allowed_origins:
+        allowed_origins.append(origin)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", 
-                   "https://invoicemanager-1.onrender.com",
-                   "https://yesitech.com",
-                   "https://invygo.yesitech.com"],
+    allow_origins=allowed_origins,
+    allow_origin_regex=r"https://([a-z0-9-]+\.)*(yesitech\.com|invoicemanager[-a-z0-9.]*\.onrender\.com)",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-    expose_headers=["*"] 
+    expose_headers=["*"],
 )
 
 def add_reset_token_columns():
