@@ -26,6 +26,8 @@ from app.auth import (
 from fastapi.staticfiles import StaticFiles
 import os
 from dotenv import load_dotenv
+from starlette.concurrency import run_in_threadpool
+from app.email_service import EmailConfigurationError, send_contact_enquiry
 
 # Load environment variables from a .env file if present (development convenience)
 load_dotenv()
@@ -102,6 +104,24 @@ async def root():
 @app.get("/health")
 def health_check():
     return {"status": "healthy", "message": "Invoice Generator API is running"}
+
+@app.post("/contact/enquiry", status_code=status.HTTP_202_ACCEPTED)
+async def create_contact_enquiry(enquiry: schemas.ContactEnquiry):
+    try:
+        await run_in_threadpool(send_contact_enquiry, enquiry)
+        return {"message": "Your enquiry has been sent successfully"}
+    except EmailConfigurationError:
+        logging.error("Contact enquiry failed because SMTP is not configured")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Email service is temporarily unavailable"
+        )
+    except Exception:
+        logging.exception("Failed to send contact enquiry")
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="We could not send your enquiry. Please try again shortly."
+        )
 
 # Auth endpoints
 @app.post("/register", response_model=schemas.User)

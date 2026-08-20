@@ -12,6 +12,18 @@ export const api = axios.create({
   }
 });
 
+export interface ContactEnquiry {
+  name: string;
+  email: string;
+  service: string;
+  message: string;
+}
+
+export const contactAPI = {
+  sendEnquiry: (enquiry: ContactEnquiry): Promise<{ message: string }> =>
+    api.post('/contact/enquiry', enquiry).then(response => response.data),
+};
+
 // Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {

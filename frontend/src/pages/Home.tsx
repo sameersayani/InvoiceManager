@@ -1,35 +1,21 @@
 import React from "react";
-import GoogleAdSense from "../components/Common/GoogleAdSense";
 import { Link } from "react-router-dom";
 
-export const Home: React.FC = () => {
-  return (
-    <section className="background h-screen w-screen flex flex-col justify-between items-center overflow-hidden p-6">
-      <div className="flex flex-col justify-center items-center flex-grow max-w-4xl">
-        <div className="text-center">
-          <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">Welcome to Yesitech</h1>
-          <p className="text-gray-300 text-lg mb-6">
-            <strong>We craft powerful, modern software solutions that empower businesses worldwide.</strong>
-          </p>
-          <p className="text-gray-300 text-base md:text-lg mb-8 max-h-40 md:max-h-48 overflow-y-auto">
-            Yesitech is a freelance software solution provider which provides software services such as website, restful services & apis using .NET Core, Nodejs and Python, database services using SQL, Mongo & Postgres, advance search using elastic and reporting services using SSRS reports and simple text/hml/csv reports. We also deal in content writing and proof reading along with technical support on your existing projects for feature enhancements and bug fixing. Also deal in hosting and domain using our third party partner.
-            Happy to hear back from you with our technical services and support.
-          </p>
-         <Link
-            to="/services"
-            className="bg-[#7e3af2] text-white px-6 py-3 rounded-lg shadow hover:bg-[#6a2ee6] transition inline-block"
-          >
-            Explore Our Services
-          </Link>
-        </div>
-      </div>
-      
-      <div className="contact-info py-4">
-        Designed & Developed with ❤️ by <span className="text-white">Yesitech</span>
-      </div>
-      <div className="footer-ad w-full">
-        <GoogleAdSense slot="2430391325" format="auto" responsive={true} />
-      </div>
-    </section>
-  );
-};
+const capabilities = [
+  { n: "01", title: "AI that works", text: "Production-ready AI agents, RAG, semantic search and intelligent automation built around your real workflows.", tag: "Generative AI" },
+  { n: "02", title: "Software that scales", text: "Reliable full-stack platforms, APIs and microservices engineered for performance, security and growth.", tag: "Product engineering" },
+  { n: "03", title: "Data that delivers", text: "Modern ETL pipelines, cloud migrations and analytics that turn fragmented information into clear decisions.", tag: "Data & cloud" },
+];
+const stack = [".NET Core", "Python", "React", "Angular", "Azure", "AWS", "Kubernetes", "LangChain"];
+
+export const Home: React.FC = () => <div className="site-page">
+  <section className="hero"><div className="hero-glow glow-one"></div><div className="hero-glow glow-two"></div>
+    <div className="hero-content"><div className="eyebrow"><span></span> Software, cloud & AI engineering</div><h1>Build what’s next.<br/><em>Intelligently.</em></h1><p>We design intelligent digital products that help ambitious companies automate operations, unlock their data and move at remarkable speed.</p><div className="hero-actions"><Link to="/contact" className="button button-primary">Start your project <span>↗</span></Link><Link to="/services" className="button button-ghost">Explore capabilities <span>→</span></Link></div><div className="hero-proof"><div><strong>10+</strong><span>Core disciplines</span></div><div><strong>24/7</strong><span>Technical support</span></div><div><strong>360°</strong><span>Delivery ownership</span></div></div></div>
+    <div className="hero-visual" aria-hidden="true"><div className="orbit orbit-one"><i></i></div><div className="orbit orbit-two"><i></i></div><div className="visual-core"><span className="core-pulse"></span><b>Y</b><small>INTELLIGENCE<br/>ENGINE</small></div><div className="float-card card-ai"><span>✦</span><div><small>AI SYSTEMS</small><strong>Learning & evolving</strong></div></div><div className="float-card card-cloud"><span>⌁</span><div><small>CLOUD SCALE</small><strong>Always available</strong></div></div><div className="code-chip chip-one">&lt;/&gt;</div><div className="code-chip chip-two">01</div></div>
+    <div className="scroll-cue"><span></span>SCROLL TO DISCOVER</div>
+  </section>
+  <section className="logo-strip"><span>TECHNOLOGIES WE BUILD WITH</span><div>{stack.map(x => <b key={x}>{x}</b>)}</div></section>
+  <section className="section section-light"><div className="section-heading split-heading"><div><span className="kicker">WHAT WE DO</span><h2>Complex technology.<br/><em>Clear business impact.</em></h2></div><p>From an ambitious idea to dependable production systems, our engineers bring strategy, software, data and AI together under one roof.</p></div><div className="capability-grid">{capabilities.map(item => <article className="capability-card" key={item.n}><div className="card-top"><span>{item.n}</span><i>↗</i></div><div className="service-symbol">{item.n === "01" ? "✦" : item.n === "02" ? "⌘" : "⌁"}</div><small>{item.tag}</small><h3>{item.title}</h3><p>{item.text}</p><Link to="/services">Explore service <span>→</span></Link></article>)}</div></section>
+  <section className="dark-feature"><div className="feature-copy"><span className="kicker kicker-mint">WHY YESITECH</span><h2>Your vision deserves more than just <em>working code.</em></h2><p>We think like product owners, engineer for the long term and communicate without the fog. Every engagement is grounded in measurable outcomes.</p><div className="feature-list"><span>Strategy before syntax</span><span>Senior engineering mindset</span><span>Security built in</span><span>Transparent delivery</span></div><Link to="/about" className="text-link">Meet your technology partner →</Link></div><div className="feature-panel"><div className="panel-label"><span>DELIVERY SYSTEM</span><b>● LIVE</b></div><div className="signal"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div className="metric"><strong>Ideas</strong><span></span><b>Impact</b></div><div className="panel-footer"><span>DISCOVER</span><span>DESIGN</span><span>ENGINEER</span><span>EVOLVE</span></div></div></section>
+  <section className="cta-section"><span className="kicker">YOUR NEXT MOVE</span><h2>Have a bold idea?<br/><em>Let’s make it real.</em></h2><p>Tell us where you want to go. We’ll bring the technical clarity and engineering power to get you there.</p><Link to="/contact" className="button button-dark">Talk to our team <span>↗</span></Link></section>
+</div>;

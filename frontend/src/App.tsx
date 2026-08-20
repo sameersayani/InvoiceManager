@@ -10,6 +10,7 @@ import { Services } from "./pages/Services";
 import { Products } from './pages/Products';
 import { Contact } from './pages/Contact';
 import { ToastContainer } from 'react-toastify';
+import { SiteFooter } from './components/Common/SiteFooter';
 
 // Protected Route Component
 const ProtectedRoute = ({
@@ -90,9 +91,7 @@ function App() {
         </Routes>
       </main>
 
-      <footer className="text-center text-gray-500 py-6 border-t mt-8">
-        © {new Date().getFullYear()} Yesitech. All rights reserved.
-      </footer>
+      <SiteFooter />
     </Router>
   );
 }

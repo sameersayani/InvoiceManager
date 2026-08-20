@@ -1,79 +1,18 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
-export const Services: React.FC = () => {
-  const services = [
-    { 
-      title: "Web Development", 
-      desc: "Build fast, responsive, and user-friendly websites using React, Next.js, and Tailwind CSS.",
-      icon: "🌐"
-    },
-    { 
-      title: "Backend APIs", 
-      desc: "Develop secure, scalable APIs using FastAPI, Node.js, or .NET Core.",
-      icon: "⚙️"
-    },
-    { 
-      title: "Mobile Apps", 
-      desc: "Create cross-platform mobile apps using React Native or Flutter.",
-      icon: "📱"
-    },
-    { 
-      title: "AI Solutions", 
-      desc: "Integrate smart automation and AI assistants to transform your workflow.",
-      icon: "🤖"
-    },
-    { 
-      title: "Database Solutions", 
-      desc: "Expert database design and management with SQL, MongoDB, and PostgreSQL.",
-      icon: "🗄️"
-    },
-    {
-      title: "Rest API Services", 
-      desc: "Design and implement RESTful APIs for seamless integration between front-end and back-end systems.",
-      icon: "🌐"
-    },
-    { 
-      title: "Technical Support", 
-      desc: "Ongoing maintenance, bug fixes, and feature enhancements for existing projects.",
-      icon: "🔧"
-    },
-  ];
+const services = [
+  { icon: "✦", title: "AI & intelligent systems", desc: "Move beyond AI demos with secure, grounded systems designed for real business value.", items: ["Generative AI & AI agents", "RAG & semantic search", "LangChain & LangGraph", "Hugging Face & vector databases"] },
+  { icon: "⌘", title: "Custom software", desc: "Robust applications built around your processes, users and long-term growth.", items: [".NET Core, C# & VB.NET", "ASP.NET MVC & REST APIs", "Microservices architecture", "React, Angular & TypeScript"] },
+  { icon: "⌁", title: "Data engineering", desc: "Turn scattered data into a trusted, usable asset across your organization.", items: ["ETL pipeline engineering", "Database migration", "Analytics & visualization", "SQL, NoSQL & vector data"] },
+  { icon: "☁", title: "Cloud & DevOps", desc: "Modern infrastructure that is resilient, repeatable and ready to scale.", items: ["AWS & Microsoft Azure", "Docker & Kubernetes", "Terraform infrastructure", "CI/CD automation"] },
+  { icon: "◫", title: "Web experiences", desc: "Fast, accessible websites and platforms that turn attention into action.", items: ["Full-stack development", "Responsive UI engineering", "API-first integrations", "Performance optimization"] },
+  { icon: "◎", title: "Training & support", desc: "Build capability in your team and confidence in the technology you rely on.", items: ["AI & industrial training", "DevOps enablement", "Technical support", "Maintenance & modernization"] },
+];
 
-  return (
-    <section className="background min-h-screen py-16 px-6">
-      <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-16">
-          <h1 className="text-4xl font-bold text-white mb-4">Our Services</h1>
-          <p className="text-gray-300 text-lg max-w-2xl mx-auto mb-6">
-            Comprehensive technology solutions tailored to your business needs
-          </p>
-          <div className="w-20 h-1 bg-[#7e3af2] mx-auto"></div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {services.map((service, index) => (
-            <div
-              key={index}
-              className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:border-white/40 hover:transform hover:scale-105 transition-all duration-300"
-            >
-              <div className="text-3xl mb-4">{service.icon}</div>
-              <h3 className="text-xl font-semibold text-white mb-3">
-                {service.title}
-              </h3>
-              <p className="text-gray-300 leading-relaxed">{service.desc}</p>
-            </div>
-          ))}
-        </div>
-
-        <div className="text-center mt-12">
-          <a
-            href="/contact"
-            className="bg-[#7e3af2] text-white px-8 py-3 rounded-lg shadow hover:bg-[#6a2ee6] transition duration-300 font-semibold inline-block"
-          >
-            Get Started Today
-          </a>
-        </div>
-      </div>
-    </section>
-  );
-};
+export const Services: React.FC = () => <div className="site-page">
+  <section className="page-hero"><div className="page-hero-grid"></div><div><span className="eyebrow"><span></span> EXPERTISE THAT MOVES YOU FORWARD</span><h1>Engineering across the<br/><em>entire digital stack.</em></h1><p>One senior technology partner for software, data, cloud and AI—from strategy and architecture through delivery and support.</p><Link to="/contact" className="button button-primary">Discuss your challenge <span>↗</span></Link></div><div className="page-orb"><span>6</span><small>CONNECTED<br/>CAPABILITIES</small></div></section>
+  <section className="section services-section"><div className="section-heading"><span className="kicker">OUR CAPABILITIES</span><h2>Whatever the challenge,<br/><em>we connect the dots.</em></h2></div><div className="services-grid">{services.map((service, i) => <article className="service-card" key={service.title}><div className="service-card-head"><span>{service.icon}</span><small>0{i + 1}</small></div><h3>{service.title}</h3><p>{service.desc}</p><ul>{service.items.map(x => <li key={x}>{x}</li>)}</ul></article>)}</div></section>
+  <section className="process"><div><span className="kicker kicker-mint">HOW WE WORK</span><h2>Clarity at every<br/><em>turn.</em></h2><p>No black boxes. No bloated process. Just focused collaboration and visible progress from day one.</p></div><ol><li><b>01</b><div><h3>Discover</h3><p>Align on the opportunity, users and success measures.</p></div></li><li><b>02</b><div><h3>Design</h3><p>Shape the right experience, architecture and delivery plan.</p></div></li><li><b>03</b><div><h3>Build</h3><p>Ship valuable increments with quality engineered in.</p></div></li><li><b>04</b><div><h3>Evolve</h3><p>Measure, learn and keep your advantage compounding.</p></div></li></ol></section>
+  <section className="cta-section"><span className="kicker">HAVE A CHALLENGE?</span><h2>Let’s solve it,<br/><em>together.</em></h2><Link to="/contact" className="button button-dark">Start a conversation <span>↗</span></Link></section>
+</div>;

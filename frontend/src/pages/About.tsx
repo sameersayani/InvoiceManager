@@ -1,47 +1,10 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
-export const About: React.FC = () => {
-  return (
-    <section className="background min-h-screen py-16 px-6">
-      <div className="max-w-5xl mx-auto">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-white mb-4">About Yesitech</h1>
-          <div className="w-20 h-1 bg-[#7e3af2] mx-auto mb-8"></div>
-        </div>
-        
-        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20">
-          <p className="text-gray-300 leading-relaxed mb-6 text-lg">
-            Yesitech is a forward-thinking technology company specializing in web, mobile,
-            and AI-driven solutions. We aim to simplify complex business challenges with
-            intuitive and scalable digital products.
-          </p>
-          <p className="text-gray-300 leading-relaxed text-lg">
-            Our team is passionate about innovation, craftsmanship, and collaboration.
-            We believe technology should empower, not complicate — and we deliver that vision
-            through quality software built to last.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 text-center">
-            <div className="text-3xl mb-4">🚀</div>
-            <h3 className="text-white font-semibold mb-2">Innovation</h3>
-            <p className="text-gray-300 text-sm">Cutting-edge solutions for modern challenges</p>
-          </div>
-          
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 text-center">
-            <div className="text-3xl mb-4">⚡</div>
-            <h3 className="text-white font-semibold mb-2">Performance</h3>
-            <p className="text-gray-300 text-sm">Fast, reliable, and scalable applications</p>
-          </div>
-          
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 text-center">
-            <div className="text-3xl mb-4">💎</div>
-            <h3 className="text-white font-semibold mb-2">Quality</h3>
-            <p className="text-gray-300 text-sm">Craftsmanship in every line of code</p>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-};
+export const About: React.FC = () => <div className="site-page">
+  <section className="page-hero about-hero"><div className="page-hero-grid"></div><div><span className="eyebrow"><span></span> ABOUT YESITECH</span><h1>Technology with<br/><em>purpose and precision.</em></h1><p>We are a software engineering company for organizations that refuse to stand still—curious people solving meaningful problems with thoughtful technology.</p></div><div className="about-monogram"><b>Y</b><span>THINK<br/>BUILD<br/>EVOLVE</span></div></section>
+  <section className="section story-section"><div className="section-heading"><span className="kicker">OUR POINT OF VIEW</span><h2>Good technology fades into the background.<br/><em>Great outcomes don’t.</em></h2></div><div className="story-grid"><p className="story-lead">Yesitech exists to make advanced technology genuinely useful—clear to understand, practical to operate and powerful enough to create lasting advantage.</p><div><p>We partner with teams at moments of change: launching new products, modernizing critical systems, making sense of complex data or adopting AI responsibly.</p><p>Our approach combines product thinking with strong engineering discipline. That means asking the hard questions early, building only what matters and leaving every system better than we found it.</p></div></div></section>
+  <section className="values-section"><div className="section-heading"><span className="kicker kicker-mint">HOW WE SHOW UP</span><h2>Principles over<br/><em>promises.</em></h2></div><div className="values-grid"><article><span>01</span><h3>Be relentlessly useful</h3><p>Technology is only impressive when it improves a real outcome.</p></article><article><span>02</span><h3>Make complexity clear</h3><p>We communicate plainly and bring structure to uncertain problems.</p></article><article><span>03</span><h3>Own the outcome</h3><p>We act like partners, stay accountable and finish what we start.</p></article><article><span>04</span><h3>Build to endure</h3><p>Quality, security and maintainability are decisions made from day one.</p></article></div></section>
+  <section className="stat-band"><div><strong>Full-stack</strong><span>Product ownership</span></div><div><strong>Cloud-first</strong><span>Modern architecture</span></div><div><strong>AI-ready</strong><span>Responsible innovation</span></div><div><strong>Human-led</strong><span>True collaboration</span></div></section>
+  <section className="cta-section"><span className="kicker">BUILD WITH US</span><h2>Smart people.<br/><em>Shared ambition.</em></h2><p>Bring us your hardest technology problem. We’ll bring curiosity, clarity and the craft to solve it.</p><Link to="/contact" className="button button-dark">Meet the team <span>↗</span></Link></section>
+</div>;

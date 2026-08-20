@@ -1,55 +1,31 @@
-import React from "react";
+import React, { useState } from "react";
+import axios from "axios";
+import { contactAPI, ContactEnquiry } from "../services/api";
 
 export const Contact: React.FC = () => {
-  const email = "info" + "@" + "yesitech.com";
-  
-  const handleEmailClick = () => {
-    window.location.href = `mailto:${email}?subject=Business Inquiry&body=Hello Yesitech Team,`;
+  const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState("");
+
+  const submit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setSending(true);
+    setError("");
+    const form = e.currentTarget;
+    const data = new FormData(form);
+    const enquiry: ContactEnquiry = { name: String(data.get("name") || ""), email: String(data.get("email") || ""), service: String(data.get("service") || ""), message: String(data.get("message") || "") };
+    try {
+      await contactAPI.sendEnquiry(enquiry);
+      form.reset();
+      setSent(true);
+    } catch (err) {
+      const detail = axios.isAxiosError(err) ? err.response?.data?.detail : undefined;
+      setError(typeof detail === "string" ? detail : "We could not send your enquiry. Please try again.");
+    } finally { setSending(false); }
   };
 
-  return (
-    <section className="background min-h-screen py-16 px-6">
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-white mb-4">Contact Us</h1>
-          <p className="text-gray-300 text-lg max-w-2xl mx-auto">
-            Get in touch with us for any business inquiries or support
-          </p>
-          <div className="w-20 h-1 bg-[#7e3af2] mx-auto mt-6"></div>
-        </div>
-
-        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20 max-w-md mx-auto">
-          <div className="text-center">
-            <div className="text-4xl mb-6">📧</div>
-            <h2 className="text-2xl font-bold text-white mb-4">Email Us</h2>
-            <p className="text-gray-300 mb-6">
-              For business inquiries, support, or partnerships, feel free to reach out to us directly.
-            </p>
-            
-            <div className="bg-white/5 rounded-lg p-4 mb-6 border border-white/10">
-              <p className="text-sm text-gray-400 mb-2">Our Business Email:</p>
-              <p className="text-xl font-mono text-white break-all">{email}</p>
-            </div>
-
-            <button
-              onClick={handleEmailClick}
-              className="bg-[#7e3af2] hover:bg-[#6a2ee6] text-white font-medium py-3 px-8 rounded-lg transition duration-300 w-full"
-            >
-              Send Email
-            </button>
-            
-            <p className="text-gray-400 text-sm mt-4">
-              Clicking will open your default email client
-            </p>
-          </div>
-        </div>
-
-        <div className="text-center mt-12">
-          <p className="text-gray-400">
-            We typically respond within 24 hours
-          </p>
-        </div>
-      </div>
-    </section>
-  );
+  return <div className="site-page contact-page"><section className="contact-hero">
+    <div className="contact-intro"><span className="eyebrow"><span></span> START A CONVERSATION</span><h1>Let’s build something<br/><em>remarkable.</em></h1><p>Tell us what you’re working on, where you’re stuck or what you want to make possible. We’ll get back to you within one business day.</p><div className="contact-direct"><span>Prefer email?</span><a href="mailto:info@yesitech.com">info@yesitech.com ↗</a></div><div className="availability"><i></i><span><b>Now accepting new projects</b><small>Software · Data · Cloud · AI</small></span></div></div>
+    <div className="contact-form-wrap">{sent ? <div className="success-message"><span>✓</span><h2>Thanks for reaching out.</h2><p>Your enquiry has been sent to our team. We’ll reply to your email within one business day.</p><button onClick={() => setSent(false)} className="button button-dark">Send another message</button></div> : <form onSubmit={submit}><div className="form-heading"><small>PROJECT ENQUIRY</small><span>All fields marked * are required</span></div><label>Your name *<input required minLength={2} maxLength={100} name="name" placeholder="Jane Smith" /></label><label>Work email *<input required type="email" name="email" placeholder="jane@company.com" /></label><label>What can we help with? *<select required name="service" defaultValue=""><option value="" disabled>Select a service</option><option>AI & intelligent systems</option><option>Custom software development</option><option>Data engineering & migration</option><option>Cloud & DevOps</option><option>Training & technical support</option></select></label><label>Tell us a little about your project *<textarea required minLength={10} maxLength={5000} name="message" rows={4} placeholder="The challenge, your goals, and any important context..." /></label>{error && <p className="form-error" role="alert">{error}</p>}<button className="button button-dark" type="submit" disabled={sending}>{sending ? "Sending enquiry…" : <>Send enquiry <span>↗</span></>}</button><p className="form-note">By submitting, you agree that we may contact you about your enquiry.</p></form>}</div>
+  </section></div>;
 };

@@ -8,6 +8,12 @@ class ForgotPasswordRequest(BaseModel):
 class ResetPasswordRequest(BaseModel):
     token: str
     new_password: str
+
+class ContactEnquiry(BaseModel):
+    name: str = Field(min_length=2, max_length=100)
+    email: EmailStr
+    service: str = Field(min_length=2, max_length=100)
+    message: str = Field(min_length=10, max_length=5000)
     
 # Auth Schemas
 class Token(BaseModel):
