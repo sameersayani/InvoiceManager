@@ -4,6 +4,8 @@ import smtplib
 import ssl
 from email.message import EmailMessage
 
+import certifi
+
 from app.config import get_bool, get_env
 from app.schemas import ContactEnquiry
 
@@ -80,7 +82,9 @@ def send_contact_enquiry(enquiry: ContactEnquiry) -> None:
         subtype="html",
     )
 
-    context = ssl.create_default_context()
+    # Use certifi's maintained CA bundle. Some Windows/Python installations
+    # otherwise pick up a stale system OpenSSL bundle and reject valid chains.
+    context = ssl.create_default_context(cafile=certifi.where())
     smtp_class = smtplib.SMTP_SSL if use_ssl else smtplib.SMTP
     with smtp_class(host, port, timeout=20, context=context) if use_ssl else smtp_class(host, port, timeout=20) as smtp:
         if use_tls and not use_ssl:
