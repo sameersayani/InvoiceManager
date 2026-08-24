@@ -6,7 +6,7 @@ const capabilities = [
   { n: "02", title: "Software that scales", text: "Reliable full-stack platforms, APIs and microservices engineered for performance, security and growth.", tag: "Product engineering" },
   { n: "03", title: "Data that delivers", text: "Modern ETL pipelines, cloud migrations and analytics that turn fragmented information into clear decisions.", tag: "Data & cloud" },
 ];
-const stack = [".NET Core", "Python", "React", "Angular", "Azure", "AWS", "Kubernetes", "LangChain"];
+const stack = ["Agentic AI","MCP Server", "AI Agents", ".NET Core", "Python", "React/Angular", "AWS/Azure", "Kubernetes"];
 
 export const Home: React.FC = () => <div className="site-page">
   <section className="hero"><div className="hero-glow glow-one"></div><div className="hero-glow glow-two"></div>

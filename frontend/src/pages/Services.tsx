@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 const services = [
   { icon: "✦", title: "AI & intelligent systems", desc: "Move beyond AI demos with secure, grounded systems designed for real business value.", items: ["Generative AI & AI agents", "RAG & semantic search", "LangChain & LangGraph", "Hugging Face & vector databases"] },
-  { icon: "⌘", title: "Custom software", desc: "Robust applications built around your processes, users and long-term growth.", items: [".NET Core, C# & VB.NET", "ASP.NET MVC & REST APIs", "Microservices architecture", "React, Angular & TypeScript"] },
+  { icon: "⌘", title: "Custom software", desc: "Robust applications built around your processes, users and long-term growth.", items: ["Agentic AI","MCP Server", "AI Agents", ".NET Core, C# & VB.NET", "ASP.NET MVC & REST APIs", "Microservices architecture", "React, Angular & TypeScript"] },
   { icon: "⌁", title: "Data engineering", desc: "Turn scattered data into a trusted, usable asset across your organization.", items: ["ETL pipeline engineering", "Database migration", "Analytics & visualization", "SQL, NoSQL & vector data"] },
   { icon: "☁", title: "Cloud & DevOps", desc: "Modern infrastructure that is resilient, repeatable and ready to scale.", items: ["AWS & Microsoft Azure", "Docker & Kubernetes", "Terraform infrastructure", "CI/CD automation"] },
   { icon: "◫", title: "Web experiences", desc: "Fast, accessible websites and platforms that turn attention into action.", items: ["Full-stack development", "Responsive UI engineering", "API-first integrations", "Performance optimization"] },
