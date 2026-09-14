@@ -15,5 +15,5 @@
     "noEmit": true,
     "jsx": "react-jsx"   // ✅ This fixes TS17004
   },
-  "include": ["src", "vite-env.d.ts"]
+  "include": ["src", "vite-env.d.ts", "vite.config.ts"]
 }
