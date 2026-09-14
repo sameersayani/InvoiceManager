@@ -1,5 +1,6 @@
 import html
 import logging
+import threading  # 🚀 Added for background processing
 
 import resend
 
@@ -11,6 +12,36 @@ logger = logging.getLogger(__name__)
 
 class EmailConfigurationError(RuntimeError):
     pass
+
+
+def _execute_async_send(sender: str, recipient: str, enquiry: ContactEnquiry, subject: str, plain_body: str, html_body: str, confirmation_text: str, confirmation_html: str) -> None:
+    """Helper function that executes the actual network requests inside the background thread."""
+    try:
+        # Send notification email to admin
+        resend.Emails.send(
+            {
+                "from": sender,
+                "to": [recipient],
+                "reply_to": str(enquiry.email),
+                "subject": subject,
+                "text": plain_body,
+                "html": html_body,
+            }
+        )
+        # Send confirmation email to user
+        resend.Emails.send(
+            {
+                "from": sender,
+                "to": [str(enquiry.email)],
+                "reply_to": recipient,
+                "subject": "We received your Yesitech enquiry",
+                "text": confirmation_text,
+                "html": confirmation_html,
+            }
+        )
+        logger.info("Contact enquiry and customer confirmation emails sent successfully in the background")
+    except resend.exceptions.ResendError:
+        logger.exception("Failed to send contact enquiry emails via Resend in background thread")
 
 
 def send_contact_enquiry(enquiry: ContactEnquiry) -> None:
@@ -60,29 +91,13 @@ def send_contact_enquiry(enquiry: ContactEnquiry) -> None:
         "Regards,\nYesitech Solutions"
     )
 
-    try:
-        resend.Emails.send(
-            {
-                "from": sender,
-                "to": [recipient],
-                "reply_to": str(enquiry.email),
-                "subject": subject,
-                "text": plain_body,
-                "html": html_body,
-            }
-        )
-        resend.Emails.send(
-            {
-                "from": sender,
-                "to": [str(enquiry.email)],
-                "reply_to": recipient,
-                "subject": "We received your Yesitech enquiry",
-                "text": confirmation_text,
-                "html": confirmation_html,
-            }
-        )
-    except resend.exceptions.ResendError:
-        logger.exception("Failed to send contact enquiry emails via Resend")
-        raise
-
-    logger.info("Contact enquiry and customer confirmation emails sent successfully")
+    # 🚀 Kick off the email process in a separate background thread
+    email_thread = threading.Thread(
+        target=_execute_async_send,
+        args=(sender, recipient, enquiry, subject, plain_body, html_body, confirmation_text, confirmation_html),
+        daemon=True  # daemon=True ensures the thread cleans up if the main app stops
+    )
+    email_thread.start()
+    
+    # 🌟 Immediately exits this function, returning control to your API endpoint
+    logger.info("Email background thread spawned successfully")
