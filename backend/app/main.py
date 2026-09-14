@@ -48,6 +48,9 @@ DEFAULT_ALLOWED_ORIGINS = [
     "https://yesitech.com",
     "https://www.yesitech.com",
     "https://invygo.yesitech.com",
+    "https://expensemanager-1-3sb6.onrender.com",
+    "https://mechanic-ai-ui.onrender.com",
+    "https://exchangerate-3.onrender.com",
 ]
 
 configured_origins = os.getenv("CORS_ALLOWED_ORIGINS", "")
@@ -63,7 +66,7 @@ for origin in DEFAULT_ALLOWED_ORIGINS:
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
-    allow_origin_regex=r"https://([a-z0-9-]+\.)*(yesitech\.com|invoicemanager[-a-z0-9.]*\.onrender\.com)",
+    allow_origin_regex=r"https://([a-z0-9-]+\.)*(yesitech\.com|(yesitech|invygo|mechanic|expensemanager)[-a-z0-9.]*\.onrender\.com)",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
