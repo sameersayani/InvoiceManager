@@ -591,7 +591,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                 <div className="px-4 sm:px-6 py-4 bg-gray-50 border-t border-gray-200">
                   <p className="text-xs text-gray-500 text-center sm:text-right">
                     &copy; {new Date().getFullYear()} INVYGO developed & maintained by{' '}
-                    <span className="text-blue-600 font-medium">Yesitech Solutions Pvt Ltd</span>. All rights reserved.
+                    <span className="text-blue-600 font-medium">Yesitech AI Solutions</span>. All rights reserved.
                   </p>
                 </div>
               </>
